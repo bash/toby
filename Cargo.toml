@@ -1,6 +1,36 @@
 [package]
+authors = ["Ruben Schmidmeister <ruben.schmidmeister@icloud.com>"]
 name = "toby"
 version = "0.1.0"
-authors = ["Ruben Schmidmeister <ruben.schmidmeister@icloud.com>"]
 
 [dependencies]
+clap = "2.29"
+ipc-channel = "0.9"
+nanoid = "0.2"
+reqwest = "0.8"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+toml = "0.4"
+lazy_static = "1.0"
+
+[dependencies.rocket]
+branch = "v0.3"
+git = "https://github.com/SergioBenitez/Rocket"
+
+[dependencies.rocket_codegen]
+branch = "v0.3"
+git = "https://github.com/SergioBenitez/Rocket"
+
+[dependencies.rocket_contrib]
+branch = "v0.3"
+default-features = false
+features = ["json"]
+git = "https://github.com/SergioBenitez/Rocket"
+version = "0.3.5"
+
+[patch]
+[patch.crates-io]
+[patch.crates-io.ring]
+branch = "v0.11"
+git = "https://github.com/SergioBenitez/ring"
