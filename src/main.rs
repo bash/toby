@@ -12,9 +12,12 @@ extern crate toml;
 mod config;
 mod cli;
 mod worker;
+mod server;
+mod ipc;
 
 use cli::get_matches;
 use worker::start_worker;
+use server::start_server;
 
 fn print_token() {
     println!("{}", nanoid::simple());
@@ -25,7 +28,7 @@ fn main() {
     let subcommand = matches.subcommand_name().unwrap();
 
     match subcommand {
-        "server" => unimplemented!(),
+        "server" => start_server(),
         "worker" => start_worker(),
         "token" => print_token(),
         _ => unreachable!(),
