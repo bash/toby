@@ -9,4 +9,8 @@ impl Job {
 
         Job { project }
     }
+
+    pub fn project(&self) -> &str {
+        &self.project
+    }
 }

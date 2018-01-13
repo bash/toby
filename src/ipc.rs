@@ -12,7 +12,6 @@ pub enum IpcError {
     ConnectionError,
 }
 
-#[derive(Debug)]
 pub struct Server<T>
 where
     T: Serialize,
@@ -21,7 +20,6 @@ where
     server: IpcOneShotServer<T>,
 }
 
-#[derive(Debug)]
 pub struct Receiver<T>
 where
     T: for<'de> Deserialize<'de> + Serialize,
@@ -30,7 +28,6 @@ where
     first_msg: Option<T>,
 }
 
-#[derive(Debug)]
 pub struct Sender<T>
 where
     T: for<'de> Deserialize<'de> + Serialize,
@@ -38,7 +35,6 @@ where
     sender: IpcSender<T>,
 }
 
-#[derive(Debug)]
 struct NameFile;
 
 impl<T> Server<T>

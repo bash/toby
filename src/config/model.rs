@@ -15,3 +15,19 @@ pub struct Script {
 pub struct Config {
     listen: String,
 }
+
+impl Project {
+    pub fn scripts(&self) -> &[Script] {
+        &self.scripts
+    }
+}
+
+impl Script {
+    pub fn command(&self) -> &[String] {
+        &self.command
+    }
+
+    pub fn allow_failure(&self) -> bool {
+        self.allow_failure
+    }
+}
