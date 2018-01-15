@@ -17,6 +17,9 @@ addons:
     packages:
       - rpm
 
+before_deploy:
+  - ./package/package.sh
+
 deploy:
   provider: releases
   api_key:
