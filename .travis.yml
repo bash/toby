@@ -13,9 +13,9 @@ notifications:
   email: false
 
   addons:
-  apt:
-    packages:
-    - rpm
+    apt:
+      packages:
+      - rpm
 
 deploy:
   provider: releases
