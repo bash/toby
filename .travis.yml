@@ -4,17 +4,17 @@ language: rust
 
 cache:
   directories:
-  - "$HOME/.cargo"
+    - "$HOME/.cargo"
 
-  rust:
-- nightly
+rust:
+  - nightly
 
 notifications:
   email: false
 
-  addons:
-    apt:
-      packages:
+addons:
+  apt:
+    packages:
       - rpm
 
 deploy:
