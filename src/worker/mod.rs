@@ -5,9 +5,8 @@ pub use self::model::*;
 use super::config::{get_projects, Project};
 use super::ipc::{Receiver, Server};
 use std::process::{self, Command};
-use std::error::Error;
 
-macro_rules! status {
+macro status {
     ($fmt:expr, $($arg:tt)*) => {
         println!(concat!("[toby] ", $fmt), $($arg)*)
     };
