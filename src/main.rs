@@ -1,4 +1,4 @@
-#![feature(plugin, decl_macro)]
+#![feature(plugin, decl_macro, option_filter)]
 #![plugin(rocket_codegen)]
 
 #[macro_use]

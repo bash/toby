@@ -3,7 +3,7 @@ mod find;
 
 pub use self::model::*;
 
-use self::find::find_config_files;
+use self::find::{find_config_file, find_project_configs};
 use std::collections::HashMap;
 use std::fs::File;
 use std::path::PathBuf;
@@ -12,20 +12,20 @@ use std::fmt;
 use toml;
 
 #[derive(Debug)]
-pub enum ProjectError {
+pub enum ConfigError {
     ListError,
     ReadError(PathBuf),
     ParseError(PathBuf, toml::de::Error),
 }
 
-impl fmt::Display for ProjectError {
+impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ProjectError::ListError => write!(f, "unable to list project config files"),
-            ProjectError::ReadError(ref path) => {
+            ConfigError::ListError => write!(f, "unable to list project config files"),
+            ConfigError::ReadError(ref path) => {
                 write!(f, "unable to read config file {}", path.to_string_lossy())
             }
-            ProjectError::ParseError(ref path, ref err) => write!(
+            ConfigError::ParseError(ref path, ref err) => write!(
                 f,
                 "error parsing config file {}\n{}:",
                 path.to_string_lossy(),
@@ -35,7 +35,7 @@ impl fmt::Display for ProjectError {
     }
 }
 
-fn read_project_file(path: &PathBuf) -> io::Result<String> {
+fn read_file(path: &PathBuf) -> io::Result<String> {
     let mut file = File::open(path)?;
     let mut contents = String::new();
 
@@ -44,23 +44,23 @@ fn read_project_file(path: &PathBuf) -> io::Result<String> {
     Ok(contents)
 }
 
-pub fn get_projects() -> Result<HashMap<String, Project>, ProjectError> {
-    let config_files = match find_config_files() {
+pub fn get_projects() -> Result<Projects, ConfigError> {
+    let config_files = match find_project_configs() {
         Ok(files) => files,
-        Err(..) => return Err(ProjectError::ListError),
+        Err(..) => return Err(ConfigError::ListError),
     };
 
     let mut projects = HashMap::new();
 
     for config_file in config_files {
-        let mut string = match read_project_file(&config_file) {
+        let mut string = match read_file(&config_file) {
             Ok(string) => string,
-            Err(..) => return Err(ProjectError::ReadError(config_file)),
+            Err(..) => return Err(ConfigError::ReadError(config_file)),
         };
 
         let project = match toml::from_str(&string) {
             Ok(project) => project,
-            Err(err) => return Err(ProjectError::ParseError(config_file, err)),
+            Err(err) => return Err(ConfigError::ParseError(config_file, err)),
         };
 
         // TODO: define behaviour around invalid file names
@@ -75,4 +75,19 @@ pub fn get_projects() -> Result<HashMap<String, Project>, ProjectError> {
     }
 
     Ok(projects)
+}
+
+pub fn get_config() -> Result<Config, ConfigError> {
+    let path = find_config_file();
+
+    path.map(PathBuf::from)
+        .map(|path| {
+            read_file(&path)
+                .map_err(|_| ConfigError::ReadError(path.clone()))
+                .and_then(|string| {
+                    toml::from_str(&string)
+                        .map_err(|err| ConfigError::ParseError(path.clone(), err))
+                })
+        })
+        .unwrap_or(Ok(Config::default()))
 }

@@ -16,7 +16,7 @@ pub struct Server<T>
 where
     T: Serialize,
 {
-    name_file: NameFile,
+    #[allow(dead_code)] name_file: NameFile,
     server: IpcOneShotServer<T>,
 }
 

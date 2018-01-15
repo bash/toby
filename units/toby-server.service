@@ -1,0 +1,13 @@
+[Unit]
+Description=Toby HTTP server
+After=toby-worker.service network.target
+Requires=toby-worker.service network.target
+ReloadPropagatedFrom=toby-worker.service
+JoinsNamespaceOf=toby-worker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/toby server
+
+[Install]
+WantedBy=multi-user.target

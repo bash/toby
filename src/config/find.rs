@@ -4,6 +4,8 @@ use std::io;
 
 const CONFIG_EXTENSION: &'static str = "toml";
 
+const CONFIG_PATHS: [&'static str; 2] = ["/etc/toby/toby.toml", "/usr/local/etc/toby/toby.toml"];
+
 lazy_static! {
     static ref CONFIG_DIRS: Vec<PathBuf> = vec![
         PathBuf::from("/etc/toby/conf.d"),
@@ -23,7 +25,7 @@ fn is_config_file(path: &PathBuf) -> bool {
     }
 }
 
-pub fn find_config_files() -> io::Result<Vec<PathBuf>> {
+pub fn find_project_configs() -> io::Result<Vec<PathBuf>> {
     let config_dirs = CONFIG_DIRS.iter().filter(|path| path.exists());
     let mut files = vec![];
 
@@ -38,4 +40,11 @@ pub fn find_config_files() -> io::Result<Vec<PathBuf>> {
     }
 
     return Ok(files);
+}
+
+pub fn find_config_file() -> Option<&'static str> {
+    CONFIG_PATHS
+        .iter()
+        .find(|path| PathBuf::from(path).exists())
+        .map(|path| *path)
 }

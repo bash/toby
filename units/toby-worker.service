@@ -1,0 +1,12 @@
+[Unit]
+Description=Toby worker
+After=network.target
+Requires=network.target
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/toby worker
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
