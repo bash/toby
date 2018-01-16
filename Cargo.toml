@@ -1,7 +1,7 @@
 [package]
 authors = ["Ruben Schmidmeister <ruben.schmidmeister@icloud.com>"]
 name = "toby"
-version = "0.1.0"
+version = "0.1.1"
 
 [dependencies]
 clap = "2.29"
