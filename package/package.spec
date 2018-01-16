@@ -11,9 +11,6 @@ License: MIT
 Source0: toby.tar.gz
 BuildArch: x86_64
 
-# %systemd_requires
-# BuildRequires: systemd
-
 %description
 Toby the friendly server bot
 
@@ -37,16 +34,10 @@ cp %{_builddir}/units/toby-worker.service %{buildroot}%{unitdir}/
 cp %{_builddir}/target/release/toby %{buildroot}%{bindir}/
 
 %post
-%systemd_post toby-server.service
-%systemd_post toby-worker.service
+systemctl --no-reload preset toby-server.service
+systemctl --no-reload preset toby-worker.service
 
-%preun
-%systemd_pre toby-server.service
-%systemd_pre toby-worker.service
-
-%postun
-%systemd_postun toby-server.service
-%systemd_postun toby-worker.service
+mkdir -p %{toby_confdir}
 
 %clean
 rm -rf %{_builddir}

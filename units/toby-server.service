@@ -8,6 +8,7 @@ JoinsNamespaceOf=toby-worker.service
 [Service]
 Restart=always
 ExecStart=/usr/bin/toby server
+PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target

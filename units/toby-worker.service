@@ -2,6 +2,7 @@
 Description=Toby worker
 After=network.target
 Requires=network.target
+PropagatesReloadTo=toby-server.service
 
 [Service]
 Restart=always
