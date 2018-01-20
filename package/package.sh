@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tar -zcvf toby.tar.gz ./conf ./units ./src Cargo.toml Cargo.lock
+tar -zcf toby.tar.gz ./conf ./units ./src Cargo.toml Cargo.lock
 
 mkdir -p $HOME/rpmbuild/SOURCES
 mv toby.tar.gz $HOME/rpmbuild/SOURCES
