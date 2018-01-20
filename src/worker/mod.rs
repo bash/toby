@@ -1,18 +1,26 @@
 mod model;
+mod context;
 
 pub use self::model::*;
+use self::context::{CommandError, JobContext};
 
 use super::config::{get_config, get_projects, Project};
 use super::ipc::{Receiver, Server};
 use super::telegram::{send_message, ParseMode, SendMessageParams};
-use std::process::{self, Command};
+use std::process;
 use reqwest;
 use std::time::Instant;
+use std::slice::SliceConcatExt;
+use std::io;
+use std::fmt;
 
 macro status {
+    ($fmt:expr) => {
+        println!(concat!("[toby] ", $fmt));
+    },
     ($fmt:expr, $($arg:tt)*) => {
-        println!(concat!("[toby] ", $fmt), $($arg)*)
-    };
+        println!(concat!("[toby] ", $fmt), $($arg)*);
+    }
 }
 
 macro unwrap_config {
@@ -27,32 +35,52 @@ macro unwrap_config {
     };
 }
 
+#[derive(Debug)]
 struct DeployStatus {
     duration: u64,
 }
 
-fn deploy_project(project_name: &str, project: &Project) -> Result<DeployStatus, ()> {
-    let now = Instant::now();
+#[derive(Debug)]
+enum DeployError {
+    ContextError(io::Error),
+    CommandError(CommandError),
+}
 
-    status!("Building project {}", project_name);
+impl fmt::Display for DeployError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            DeployError::ContextError(ref err) => write!(f, "Unable to create context: {}", err),
+            DeployError::CommandError(ref err) => write!(f, "{}", err),
+        }
+    }
+}
+
+fn deploy_project(project_name: &str, project: &Project) -> Result<DeployStatus, DeployError> {
+    let now = Instant::now();
+    let context = match JobContext::new() {
+        Ok(context) => context,
+        Err(err) => {
+            status!("Failed to create context for {}: {}", project_name, err);
+            return Err(DeployError::ContextError(err));
+        }
+    };
+
+    status!("Building project {} {}", project_name, context);
 
     for script in project.scripts() {
         let command = script.command();
 
-        status!("Running {:?}", command);
+        status!("Running command: {}", command.join(" "));
 
-        let status = Command::new(&command[0]).args(&command[1..]).status();
+        let status = context.run_command(command);
 
-        let failed = match status {
-            Ok(status) => !status.success(),
-            Err(err) => {
-                status!("Execution failed: {}", err);
-                true
+        if let Err(err) = status {
+            status!("{}", err);
+
+            if !script.allow_failure() {
+                status!("Unexpected failure. Cancelling deploy.");
+                return Err(DeployError::CommandError(err));
             }
-        };
-
-        if failed && !script.allow_failure() {
-            return Err(());
         }
     }
 
@@ -84,7 +112,10 @@ pub fn start_worker() {
                             "✅ Deploy for project *{}* completed successfully after {}s.",
                             project_name, duration
                         ),
-                        Err(_) => format!("⚠️ Deploy for project *{}* failed.", project_name),
+                        Err(err) => format!(
+                            "⚠️ Deploy for project *{}* failed.\n```\n{}\n```",
+                            project_name, err
+                        ),
                     };
 
                     let params = SendMessageParams {

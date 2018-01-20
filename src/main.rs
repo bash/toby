@@ -1,4 +1,4 @@
-#![feature(plugin, decl_macro, option_filter)]
+#![feature(plugin, decl_macro, option_filter, slice_concat_ext)]
 #![plugin(rocket_codegen)]
 
 #[macro_use]
@@ -13,6 +13,7 @@ extern crate rocket_contrib;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+extern crate tempdir;
 extern crate toml;
 
 mod config;
