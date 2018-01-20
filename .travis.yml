@@ -2,15 +2,15 @@ sudo: false
 dist: trusty
 language: rust
 
-env:
-  global:
-    - OPENSSL_INCLUDE_DIR=./openssl-include
-  matrix:
-    - OPENSSL_VERSION=1.1.0g
+matrix:
+  include:
+    - env: OPENSSL_VERSION=1.1.0g OPENSSL_DIR=$HOME/openssl/1.1.0g
+    - language: generic
 
 cache:
   directories:
-    - "$HOME/.cargo"
+    - $HOME/.cargo
+    - $HOME/openssl
 
 rust:
   - nightly
@@ -23,11 +23,12 @@ addons:
     packages:
       - rpm
 
-before_script:
-  - ./scripts/prepare-openssl.sh
+install:
+  - ./.travis/install.sh
 
 before_deploy:
   - ./package/package.sh
+  - ./.travis/prepare-deploy.sh
 
 deploy:
   provider: releases
