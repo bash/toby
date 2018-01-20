@@ -24,8 +24,8 @@ then
   sed -i "s/^SHLIB_MINOR=.*/SHLIB_MINOR=0.0/" Makefile
   sed -i "s/^SHLIB_VERSION_NUMBER=.*/SHLIB_VERSION_NUMBER=100.0.0/" Makefile
 
-  make depend
-  make install
+  make --quiet depend
+  make --quiet install
 fi
 
 echo -en "travis_fold:end:openssl-install\\r"
