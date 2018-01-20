@@ -18,12 +18,19 @@ pub struct Script {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Config {
     listen: ListenConfig,
+    telegram: Option<TelegramConfig>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ListenConfig {
     port: u16,
     address: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TelegramConfig {
+    token: String,
+    chat_id: String,
 }
 
 impl Project {
@@ -50,6 +57,10 @@ impl Config {
     pub fn listen(&self) -> &ListenConfig {
         &self.listen
     }
+
+    pub fn telegram(&self) -> &Option<TelegramConfig> {
+        &self.telegram
+    }
 }
 
 impl ListenConfig {
@@ -59,6 +70,16 @@ impl ListenConfig {
 
     pub fn port(&self) -> u16 {
         self.port
+    }
+}
+
+impl TelegramConfig {
+    pub fn token(&self) -> &str {
+        &self.token
+    }
+
+    pub fn chat_id(&self) -> &str {
+        &self.chat_id
     }
 }
 

@@ -7,6 +7,7 @@ extern crate ipc_channel;
 #[macro_use]
 extern crate lazy_static;
 extern crate nanoid;
+extern crate reqwest;
 extern crate rocket;
 extern crate rocket_contrib;
 extern crate serde;
@@ -19,6 +20,7 @@ mod cli;
 mod worker;
 mod server;
 mod ipc;
+mod telegram;
 
 use cli::get_matches;
 use worker::start_worker;

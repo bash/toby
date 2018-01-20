@@ -4,7 +4,12 @@ use std::io;
 
 const CONFIG_EXTENSION: &'static str = "toml";
 
-const CONFIG_PATHS: [&'static str; 2] = ["/etc/toby/toby.toml", "/usr/local/etc/toby/toby.toml"];
+const CONFIG_PATHS: [&'static str; 3] = [
+    #[cfg(debug_assertions)]
+    "./conf/toby.toml",
+    "/etc/toby/toby.toml",
+    "/usr/local/etc/toby/toby.toml",
+];
 
 lazy_static! {
     static ref CONFIG_DIRS: Vec<PathBuf> = vec![
