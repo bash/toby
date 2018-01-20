@@ -1,3 +1,8 @@
 [listen]
 address = "0.0.0.0"
 port = 8629
+
+# The bot can notify you about success/failure of deploys through telegram.
+# [telegram]
+# token = "TOKEN"
+# chat_id = "CHAT_ID"
