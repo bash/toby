@@ -3,7 +3,7 @@
 %global bindir /usr/bin
 
 Name: toby
-Version: 0.2.0
+Version: %{_version}
 Release: 1
 Summary: Toby the friendly server bot
 Group: System Environment/Daemons
