@@ -4,8 +4,6 @@
 #[macro_use]
 extern crate clap;
 extern crate ipc_channel;
-#[macro_use]
-extern crate lazy_static;
 extern crate nanoid;
 extern crate reqwest;
 extern crate rocket;

@@ -2,25 +2,11 @@ use std::fs::read_dir;
 use std::path::PathBuf;
 use std::io;
 
+const LOCAL_CONFIG_DIR: Option<&'static str> = option_env!("LOCAL_CONFIG_DIR");
+
 const CONFIG_EXTENSION: &'static str = "toml";
-
-#[cfg(debug_assertions)]
-const CONFIG_PATHS: [&'static str; 3] = [
-    "./conf/toby.toml",
-    "/etc/toby/toby.toml",
-    "/usr/local/etc/toby/toby.toml",
-];
-
-#[cfg(not(debug_assertions))]
-const CONFIG_PATHS: [&'static str; 2] = ["/etc/toby/toby.toml", "/usr/local/etc/toby/toby.toml"];
-
-lazy_static! {
-    static ref CONFIG_DIRS: Vec<PathBuf> = vec![
-        PathBuf::from("/etc/toby/conf.d"),
-        PathBuf::from("/usr/local/etc/toby/conf.d"),
-        #[cfg(debug_assertions)] PathBuf::from("./conf/conf.d"),
-    ];
-}
+const PROJECT_CONFIG_PATH: &'static str = "toby/conf.d";
+const CONFIG_PATH: &'static str = "toby/toby.toml";
 
 fn is_config_file(path: &PathBuf) -> bool {
     if !path.is_file() {
@@ -33,12 +19,18 @@ fn is_config_file(path: &PathBuf) -> bool {
     }
 }
 
-pub fn find_project_configs() -> io::Result<Vec<PathBuf>> {
-    let config_dirs = CONFIG_DIRS.iter().filter(|path| path.exists());
-    let mut files = vec![];
+fn prefix_path(path: &str) -> PathBuf {
+    let mut prefixed_path = PathBuf::from(LOCAL_CONFIG_DIR.unwrap_or("./conf/etc"));
+    prefixed_path.push(path);
+    prefixed_path
+}
 
-    for config_dir in config_dirs {
-        for entry in read_dir(config_dir)? {
+pub fn find_project_configs() -> io::Result<Vec<PathBuf>> {
+    let mut files = vec![];
+    let path = prefix_path(PROJECT_CONFIG_PATH);
+
+    if path.exists() {
+        for entry in read_dir(path)? {
             let path = entry?.path();
 
             if is_config_file(&path) {
@@ -50,9 +42,12 @@ pub fn find_project_configs() -> io::Result<Vec<PathBuf>> {
     return Ok(files);
 }
 
-pub fn find_config_file() -> Option<&'static str> {
-    CONFIG_PATHS
-        .iter()
-        .find(|path| PathBuf::from(path).exists())
-        .map(|path| *path)
+pub fn find_config_file() -> Option<PathBuf> {
+    let path = prefix_path(CONFIG_PATH);
+
+    if path.exists() {
+        return Some(path);
+    }
+
+    None
 }

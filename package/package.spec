@@ -18,7 +18,7 @@ Toby the friendly server bot
 tar -xvf %{SOURCE0}
 
 %build
-cargo build --release
+LOCAL_CONFIG_DIR=/etc cargo build --release
 
 %install
 [[ -d %{buildroot} ]] && rm -rf "%{buildroot}"
@@ -28,7 +28,7 @@ install -d -m 0755 %{buildroot}%{toby_confdir}/conf.d
 install -d -m 0755 %{buildroot}%{unitdir}
 install -d -m 0755 %{buildroot}%{bindir}
 
-cp %{_builddir}/conf/toby.toml %{buildroot}%{toby_confdir}/
+cp %{_builddir}/conf/etc/toby/toby.toml %{buildroot}%{toby_confdir}/
 cp %{_builddir}/units/toby-server.service %{buildroot}%{unitdir}/
 cp %{_builddir}/units/toby-worker.service %{buildroot}%{unitdir}/
 cp %{_builddir}/target/release/toby %{buildroot}%{bindir}/
