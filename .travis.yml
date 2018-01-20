@@ -5,7 +5,7 @@ language: rust
 matrix:
   include:
     - env: OPENSSL_VERSION=1.1.0g OPENSSL_DIR=$HOME/openssl/1.1.0g
-    - language: generic
+    - language: rust
 
 cache:
   directories:
