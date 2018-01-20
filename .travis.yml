@@ -2,6 +2,10 @@ sudo: false
 dist: trusty
 language: rust
 
+env:
+- OPENSSL_VERSION=1.1.0g
+- OPENSSL_INCLUDE_DIR=./openssl-include
+
 cache:
   directories:
     - "$HOME/.cargo"
