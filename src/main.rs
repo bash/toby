@@ -1,4 +1,4 @@
-#![feature(plugin, decl_macro, option_filter, slice_concat_ext)]
+#![feature(plugin, decl_macro, option_filter, slice_concat_ext, custom_derive)]
 #![plugin(rocket_codegen)]
 
 #[macro_use]
@@ -36,7 +36,7 @@ fn main() {
     match subcommand {
         "server" => start_server(),
         "worker" => start_worker(),
-        "token" => print_token(),
+        "gen-secret" => print_token(),
         _ => unreachable!(),
     }
 }

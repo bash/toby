@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub type Projects = HashMap<String, Project>;
+pub type Tokens = HashMap<String, Token>;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Project {
-    token: String,
     repository: Option<String>,
     scripts: Vec<Script>,
 }
@@ -33,13 +33,15 @@ pub struct TelegramConfig {
     chat_id: String,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Token {
+    secret: String,
+    access: HashSet<String>,
+}
+
 impl Project {
     pub fn scripts(&self) -> &[Script] {
         &self.scripts
-    }
-
-    pub fn token(&self) -> &str {
-        &self.token
     }
 }
 
@@ -80,6 +82,16 @@ impl TelegramConfig {
 
     pub fn chat_id(&self) -> &str {
         &self.chat_id
+    }
+}
+
+impl Token {
+    pub fn secret(&self) -> &str {
+        &self.secret
+    }
+
+    pub fn can_access(&self, project: &str) -> bool {
+        self.access.contains(project)
     }
 }
 

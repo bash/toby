@@ -1,8 +1,9 @@
 use super::worker::Job;
 use super::ipc::Sender;
-use super::config::{get_config, get_projects, Projects};
+use super::config::{get_config, get_projects, get_tokens, Projects, Tokens};
 use rocket_contrib::Json;
 use rocket::{self, State};
+use rocket::request::Form;
 use rocket::config::{ConfigBuilder, Environment};
 use rocket::http::Status;
 use std::thread;
@@ -17,22 +18,36 @@ struct BuildResponse {
     queued: bool,
 }
 
+#[derive(FromForm)]
+struct DeployInput {
+    token: String,
+    secret: String,
+}
+
 impl BuildResponse {
     fn new() -> Self {
         BuildResponse { queued: true }
     }
 }
 
-#[post("/v1/deploy/<project_name>/<token>")]
+#[post("/v1/deploy/<project_name>", data = "<body>")]
 fn deploy(
     tx: State<SyncSender<Job>>,
     projects: State<Projects>,
+    tokens: State<Tokens>,
     project_name: String,
-    token: String,
+    body: Form<DeployInput>,
 ) -> Option<Result<Json<BuildResponse>, Status>> {
+    let DeployInput { token, secret } = body.into_inner();
+
     projects
         .get(&project_name)
-        .filter(|project| project.token() == token)
+        .filter(|_| {
+            tokens
+                .get(&token)
+                .filter(|token| token.secret() == secret && token.can_access(&project_name))
+                .is_some()
+        })
         .map(|_| match tx.send(Job::new(project_name)) {
             Ok(_) => Ok(Json(BuildResponse::new())),
             Err(_) => Err(Status::InternalServerError),
@@ -42,6 +57,7 @@ fn deploy(
 pub fn start_server() {
     let sender: Sender<Job> = Sender::connect().expect("unable to connect to ipc server");
     let projects = get_projects().expect("unable to get projects");
+    let tokens = get_tokens().expect("unable to get tokens");
 
     let (tx, rx) = sync_channel::<Job>(CHANNEL_BOUND);
 
@@ -63,6 +79,7 @@ pub fn start_server() {
     rocket::custom(rocket_config, true)
         .manage(tx)
         .manage(projects)
+        .manage(tokens)
         .mount("/", routes![deploy])
         .launch();
 }

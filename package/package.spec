@@ -29,6 +29,7 @@ install -d -m 0755 %{buildroot}%{unitdir}
 install -d -m 0755 %{buildroot}%{bindir}
 
 cp %{_builddir}/conf/etc/toby/toby.toml %{buildroot}%{toby_confdir}/
+cp %{_builddir}/conf/etc/toby/tokens.toml %{buildroot}%{toby_confdir}/
 cp %{_builddir}/units/toby-server.service %{buildroot}%{unitdir}/
 cp %{_builddir}/units/toby-worker.service %{buildroot}%{unitdir}/
 cp %{_builddir}/target/release/toby %{buildroot}%{bindir}/

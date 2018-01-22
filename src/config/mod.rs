@@ -3,7 +3,7 @@ mod find;
 
 pub use self::model::*;
 
-use self::find::{find_config_file, find_project_configs};
+use self::find::{find_config_file, find_project_configs, find_tokens_file};
 use std::collections::HashMap;
 use std::fs::File;
 use std::path::PathBuf;
@@ -90,4 +90,19 @@ pub fn get_config() -> Result<Config, ConfigError> {
                 })
         })
         .unwrap_or(Ok(Config::default()))
+}
+
+pub fn get_tokens() -> Result<Tokens, ConfigError> {
+    let path = find_tokens_file();
+
+    path.map(PathBuf::from)
+        .map(|path| {
+            read_file(&path)
+                .map_err(|_| ConfigError::ReadError(path.clone()))
+                .and_then(|string| {
+                    toml::from_str(&string)
+                        .map_err(|err| ConfigError::ParseError(path.clone(), err))
+                })
+        })
+        .unwrap_or(Ok(Tokens::default()))
 }
