@@ -5,14 +5,14 @@
 Name: toby
 Version: %{_version}
 Release: 1
-Summary: Toby the friendly server bot
+Summary: 🐶 Toby the friendly server bot
 Group: System Environment/Daemons
 License: MIT
 Source0: toby.tar.gz
 BuildArch: x86_64
 
 %description
-Toby the friendly server bot
+🐶 Toby the friendly server bot
 
 %prep
 tar -xvf %{SOURCE0}

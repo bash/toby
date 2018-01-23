@@ -1,5 +1,5 @@
 [Unit]
-Description=Toby the friendly server bot
+Description=🐶 Toby the friendly server bot
 After=network.target
 Requires=network.target
 
