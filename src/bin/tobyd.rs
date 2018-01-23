@@ -1,3 +1,7 @@
+#![feature(use_extern_macros)]
+
+#[macro_use]
+extern crate clap;
 extern crate toby;
 
 use toby::config::get_config;
@@ -13,6 +17,8 @@ const CHANNEL_BOUND: usize = 8;
 fn main() {
     let config = get_config().expect("unable to read config");
     let (sender, receiver) = sync_channel(CHANNEL_BOUND);
+
+    let _ = toby::clap_app!().get_matches();
 
     {
         let config = config.clone();

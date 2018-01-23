@@ -18,7 +18,7 @@ Toby the friendly server bot
 tar -xvf %{SOURCE0}
 
 %build
-LOCAL_CONFIG_DIR=/etc cargo build --release
+LOCAL_CONFIG_DIR=/etc VERSION=%{_version} cargo build --release
 
 %install
 [[ -d %{buildroot} ]] && rm -rf "%{buildroot}"
