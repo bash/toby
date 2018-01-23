@@ -22,7 +22,7 @@ pub macro clap_app {
         {
             let version = option_env!("VERSION").unwrap_or(crate_version!());
 
-            app_from_crate!().version(version).about("🐶 Toby the friendly server bot")
+            app_from_crate!().version(version).about("🤖 Toby the friendly server bot")
         }
     };
 }

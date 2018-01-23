@@ -4,11 +4,24 @@
 
 🤖 Toby the friendly server bot.
 
-> **⚠️ Warning:** This is a work in progress. Do not use it in production.
+> **⚠️ Warning:** This is a work in progress. Do not use it in production. (Or expect things to go [up in flames](https://open.spotify.com/track/06t6JWrU05BxaKPtct2P2n).)
 
 ## What does it do?
 
-Toby listens for incoming webhooks and runs a pre-defined list of scripts when it receives a webhook.
+Toby listens for incoming webhooks and can run pre-defined scripts for different projects. It requires that a `token` with a `secret` are passed in order to prevent that anyone can trigger jobs.
+
+## What is it good for?
+
+### Travis
+
+It can update projects on your server in the `deploy` stage of a travis job. 
+Examples: [bash/server-config](https://github.com/bash/server-config/blob/master/.travis.yml), [bash/mdl-app](https://github.com/bash/mdl-app/blob/master/.travis.yml).
+
+In these examples travis uploads a package to [Digitalocean Spaces](https://www.digitalocean.com/products/spaces/) and triggers toby on my server who fetches und unpacks that package.
+
+### More?
+
+If you find another interesting use case [let me know](https://github.com/bash/toby/issues/new).
 
 ## Installation
 
