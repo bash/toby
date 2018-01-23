@@ -6,21 +6,13 @@ use self::context::{CommandError, JobContext};
 
 use super::config::{Config, Project};
 use super::telegram::{send_message, ParseMode, SendMessageParams};
+use super::status;
 use reqwest;
 use std::time::Instant;
 use std::slice::SliceConcatExt;
 use std::io;
 use std::fmt;
 use std::sync::mpsc::Receiver;
-
-macro status {
-    ($fmt:expr) => {
-        println!(concat!("[toby] ", $fmt));
-    },
-    ($fmt:expr, $($arg:tt)*) => {
-        println!(concat!("[toby] ", $fmt), $($arg)*);
-    }
-}
 
 #[derive(Debug)]
 struct DeployStatus {
