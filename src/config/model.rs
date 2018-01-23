@@ -3,40 +3,69 @@ use std::collections::{HashMap, HashSet};
 pub type Projects = HashMap<String, Project>;
 pub type Tokens = HashMap<String, Token>;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug, Clone)]
+pub struct Config {
+    main: MainConfig,
+    tokens: Tokens,
+    projects: Projects,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Project {
     repository: Option<String>,
     scripts: Vec<Script>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Script {
     command: Vec<String>,
     #[serde(default)] allow_failure: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
-pub struct Config {
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct MainConfig {
     listen: ListenConfig,
     telegram: Option<TelegramConfig>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ListenConfig {
     port: u16,
     address: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TelegramConfig {
     token: String,
     chat_id: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Token {
     secret: String,
     access: HashSet<String>,
+}
+
+impl Config {
+    pub fn new(main: MainConfig, tokens: Tokens, projects: Projects) -> Self {
+        Config {
+            main,
+            tokens,
+            projects,
+        }
+    }
+
+    pub fn main(&self) -> &MainConfig {
+        &self.main
+    }
+
+    pub fn tokens(&self) -> &Tokens {
+        &self.tokens
+    }
+
+    pub fn projects(&self) -> &Projects {
+        &self.projects
+    }
 }
 
 impl Project {
@@ -55,7 +84,7 @@ impl Script {
     }
 }
 
-impl Config {
+impl MainConfig {
     pub fn listen(&self) -> &ListenConfig {
         &self.listen
     }

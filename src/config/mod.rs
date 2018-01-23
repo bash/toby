@@ -78,6 +78,14 @@ pub fn get_projects() -> Result<Projects, ConfigError> {
 }
 
 pub fn get_config() -> Result<Config, ConfigError> {
+    let main = get_main_config()?;
+    let tokens = get_tokens()?;
+    let projects = get_projects()?;
+
+    Ok(Config::new(main, tokens, projects))
+}
+
+pub fn get_main_config() -> Result<MainConfig, ConfigError> {
     let path = find_config_file();
 
     path.map(PathBuf::from)
@@ -89,7 +97,7 @@ pub fn get_config() -> Result<Config, ConfigError> {
                         .map_err(|err| ConfigError::ParseError(path.clone(), err))
                 })
         })
-        .unwrap_or(Ok(Config::default()))
+        .unwrap_or(Ok(MainConfig::default()))
 }
 
 pub fn get_tokens() -> Result<Tokens, ConfigError> {

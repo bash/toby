@@ -30,14 +30,12 @@ install -d -m 0755 %{buildroot}%{bindir}
 
 cp %{_builddir}/conf/etc/toby/toby.toml %{buildroot}%{toby_confdir}/
 cp %{_builddir}/conf/etc/toby/tokens.toml %{buildroot}%{toby_confdir}/
-cp %{_builddir}/units/toby-server.service %{buildroot}%{unitdir}/
-cp %{_builddir}/units/toby-worker.service %{buildroot}%{unitdir}/
+cp %{_builddir}/units/toby.service %{buildroot}%{unitdir}/
 cp %{_builddir}/target/release/toby %{buildroot}%{bindir}/
+cp %{_builddir}/target/release/tobyd %{buildroot}%{bindir}/
 
 %post
-systemctl --no-reload preset toby-server.service
-systemctl --no-reload preset toby-worker.service
-
+systemctl --no-reload preset toby.service
 mkdir -p %{toby_confdir}
 
 %clean
@@ -49,5 +47,4 @@ rm -rf %{_builddir}
 %dir %{toby_confdir}
 %config(noreplace) %{toby_confdir}/toby.toml
 %{bindir}/toby
-%{unitdir}/toby-server.service
-%{unitdir}/toby-worker.service
+%{unitdir}/toby.service

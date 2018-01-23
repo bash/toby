@@ -4,15 +4,14 @@ mod context;
 pub use self::model::*;
 use self::context::{CommandError, JobContext};
 
-use super::config::{get_config, get_projects, Project};
-use super::ipc::{Receiver, Server};
+use super::config::{Config, Project};
 use super::telegram::{send_message, ParseMode, SendMessageParams};
-use std::process;
 use reqwest;
 use std::time::Instant;
 use std::slice::SliceConcatExt;
 use std::io;
 use std::fmt;
+use std::sync::mpsc::Receiver;
 
 macro status {
     ($fmt:expr) => {
@@ -21,18 +20,6 @@ macro status {
     ($fmt:expr, $($arg:tt)*) => {
         println!(concat!("[toby] ", $fmt), $($arg)*);
     }
-}
-
-macro unwrap_config {
-    ($config:expr) => {
-        match $config {
-            Ok(config) => config,
-            Err(err) => {
-                eprintln!("{}", err);
-                process::exit(1);
-            }
-        }
-    };
 }
 
 #[derive(Debug)]
@@ -89,22 +76,17 @@ fn deploy_project(project_name: &str, project: &Project) -> Result<DeployStatus,
     })
 }
 
-pub fn start_worker() {
-    let projects = unwrap_config!(get_projects());
-    let config = unwrap_config!(get_config());
-
-    let server = Server::new().unwrap();
-    let receiver: Receiver<Job> = server.connect().unwrap();
+pub fn start_worker(config: Config, receiver: Receiver<Job>) {
     let client = reqwest::Client::new();
+    let projects = config.projects();
 
     for job in receiver {
-        let job = job.unwrap();
         let project_name = job.project();
 
         match projects.get(project_name) {
             Some(project) => {
                 let deploy_result = deploy_project(project_name, project);
-                let telegram = config.telegram();
+                let telegram = config.main().telegram();
 
                 if let Some(ref telegram) = *telegram {
                     let message = match deploy_result {

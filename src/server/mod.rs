@@ -1,17 +1,11 @@
 use super::worker::Job;
-use super::ipc::Sender;
-use super::config::{get_config, get_projects, get_tokens, Projects, Tokens};
+use super::config::Config;
 use rocket_contrib::Json;
 use rocket::{self, State};
 use rocket::request::Form;
 use rocket::config::{ConfigBuilder, Environment};
 use rocket::http::Status;
-use std::thread;
-use std::sync::mpsc::{sync_channel, SyncSender};
-
-// TODO: what value should I have here?
-// Note to future self: 8 was picked arbitrarily
-const CHANNEL_BOUND: usize = 8;
+use std::sync::mpsc::SyncSender;
 
 #[derive(Serialize, Deserialize)]
 struct BuildResponse {
@@ -33,12 +27,13 @@ impl BuildResponse {
 #[post("/v1/deploy/<project_name>", data = "<body>")]
 fn deploy(
     tx: State<SyncSender<Job>>,
-    projects: State<Projects>,
-    tokens: State<Tokens>,
+    config: State<Config>,
     project_name: String,
     body: Form<DeployInput>,
 ) -> Option<Result<Json<BuildResponse>, Status>> {
     let DeployInput { token, secret } = body.into_inner();
+    let projects = config.projects();
+    let tokens = config.tokens();
 
     projects
         .get(&project_name)
@@ -54,32 +49,15 @@ fn deploy(
         })
 }
 
-pub fn start_server() {
-    let sender: Sender<Job> = Sender::connect().expect("unable to connect to ipc server");
-    let projects = get_projects().expect("unable to get projects");
-    let tokens = get_tokens().expect("unable to get tokens");
-
-    let (tx, rx) = sync_channel::<Job>(CHANNEL_BOUND);
-
-    // TODO: implement proper error handling
-    thread::spawn(move || loop {
-        let job = rx.recv().unwrap();
-
-        sender.send(job).unwrap();
-    });
-
-    let config = get_config().expect("unable to read config");
-    let listen_config = config.listen();
-
+pub fn start_server(config: Config, sender: SyncSender<Job>) {
     let rocket_config = ConfigBuilder::new(Environment::Production)
-        .address(listen_config.address())
-        .port(listen_config.port())
+        .address(config.main().listen().address().clone())
+        .port(config.main().listen().port())
         .unwrap();
 
     rocket::custom(rocket_config, true)
-        .manage(tx)
-        .manage(projects)
-        .manage(tokens)
+        .manage(sender)
+        .manage(config)
         .mount("/", routes![deploy])
         .launch();
 }
