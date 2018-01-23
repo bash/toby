@@ -22,16 +22,16 @@ pub struct Script {
     #[serde(default)] allow_failure: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MainConfig {
-    listen: ListenConfig,
+    #[serde(default)] listen: ListenConfig,
     telegram: Option<TelegramConfig>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ListenConfig {
-    port: u16,
-    address: String,
+    #[serde(default = "default_port")] port: u16,
+    #[serde(default = "default_address")] address: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -44,6 +44,14 @@ pub struct TelegramConfig {
 pub struct Token {
     secret: String,
     access: HashSet<String>,
+}
+
+fn default_port() -> u16 {
+    8629
+}
+
+fn default_address() -> String {
+    "0.0.0.0".into()
 }
 
 impl Config {
@@ -126,9 +134,9 @@ impl Token {
 
 impl Default for ListenConfig {
     fn default() -> Self {
-        Self {
-            port: 8629,
-            address: "0.0.0.0".into(),
+        ListenConfig {
+            address: default_address(),
+            port: default_port(),
         }
     }
 }

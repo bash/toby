@@ -43,14 +43,10 @@ pub fn find_project_configs() -> io::Result<Vec<PathBuf>> {
     return Ok(files);
 }
 
-pub fn find_config_file() -> Option<PathBuf> {
-    let path = Some(prefix_path(CONFIG_PATH));
-
-    path.filter(|path| path.exists())
+pub fn find_config_file() -> PathBuf {
+    prefix_path(CONFIG_PATH)
 }
 
-pub fn find_tokens_file() -> Option<PathBuf> {
-    let path = Some(prefix_path(TOKENS_PATH));
-
-    path.filter(|path| path.exists())
+pub fn find_tokens_file() -> PathBuf {
+    prefix_path(TOKENS_PATH)
 }
