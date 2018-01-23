@@ -1,6 +1,3 @@
-# token is required for webhooks
-token = "2Fnv1pI6PG4iA09ouyl9y"
-
 # optionally a github repository can be given
 # (for status updates)
 repository = "bash/foo"

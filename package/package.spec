@@ -18,26 +18,24 @@ Toby the friendly server bot
 tar -xvf %{SOURCE0}
 
 %build
-LOCAL_CONFIG_DIR=/etc cargo build --release
+LOCAL_CONFIG_DIR=/etc VERSION=%{_version} cargo build --release
 
 %install
 [[ -d %{buildroot} ]] && rm -rf "%{buildroot}"
 
 install -d -m 0755 %{buildroot}%{toby_confdir}
-install -d -m 0755 %{buildroot}%{toby_confdir}/conf.d
 install -d -m 0755 %{buildroot}%{unitdir}
 install -d -m 0755 %{buildroot}%{bindir}
 
 cp %{_builddir}/conf/etc/toby/toby.toml %{buildroot}%{toby_confdir}/
-cp %{_builddir}/units/toby-server.service %{buildroot}%{unitdir}/
-cp %{_builddir}/units/toby-worker.service %{buildroot}%{unitdir}/
+cp %{_builddir}/conf/etc/toby/tokens.toml %{buildroot}%{toby_confdir}/
+cp %{_builddir}/units/toby.service %{buildroot}%{unitdir}/
 cp %{_builddir}/target/release/toby %{buildroot}%{bindir}/
+cp %{_builddir}/target/release/tobyd %{buildroot}%{bindir}/
 
 %post
-systemctl --no-reload preset toby-server.service
-systemctl --no-reload preset toby-worker.service
-
-mkdir -p %{toby_confdir}
+systemctl --no-reload preset toby.service
+mkdir -p %{toby_confdir}/conf.d
 
 %clean
 rm -rf %{_builddir}
@@ -45,8 +43,8 @@ rm -rf %{_builddir}
 %files
 %defattr(-,root,root)
 %dir %{toby_confdir}
-%dir %{toby_confdir}
 %config(noreplace) %{toby_confdir}/toby.toml
+%config(noreplace) %{toby_confdir}/tokens.toml
 %{bindir}/toby
-%{unitdir}/toby-server.service
-%{unitdir}/toby-worker.service
+%{bindir}/tobyd
+%{unitdir}/toby.service

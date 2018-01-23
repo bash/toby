@@ -1,12 +1,11 @@
 [Unit]
-Description=Toby worker
+Description=Toby the friendly server bot
 After=network.target
 Requires=network.target
-PropagatesReloadTo=toby-server.service
 
 [Service]
 Restart=always
-ExecStart=/usr/bin/toby worker
+ExecStart=/usr/bin/tobyd
 PrivateTmp=true
 
 [Install]
