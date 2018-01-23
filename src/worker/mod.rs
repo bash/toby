@@ -42,8 +42,9 @@ impl fmt::Display for DeployError {
     }
 }
 
-fn deploy_project(project_name: &str, project: &Project) -> Result<DeployStatus, DeployError> {
+fn deploy_project(job: &Job, project: &Project) -> Result<DeployStatus, DeployError> {
     let now = Instant::now();
+    let project_name = job.project();
     let context = match JobContext::new() {
         Ok(context) => context,
         Err(err) => {
@@ -52,7 +53,12 @@ fn deploy_project(project_name: &str, project: &Project) -> Result<DeployStatus,
         }
     };
 
-    status!("Building project {} {}", project_name, context);
+    status!(
+        "Building project {} with context {} triggered by {}",
+        project_name,
+        context,
+        job.trigger(),
+    );
 
     for script in project.scripts() {
         let command = script.command();
@@ -85,14 +91,14 @@ pub fn start_worker(config: Config, receiver: Receiver<Job>) {
 
         match projects.get(project_name) {
             Some(project) => {
-                let deploy_result = deploy_project(project_name, project);
+                let deploy_result = deploy_project(&job, project);
                 let telegram = config.main().telegram();
 
                 if let Some(ref telegram) = *telegram {
                     let message = match deploy_result {
                         Ok(DeployStatus { duration }) => format!(
-                            "✅ Deploy for project *{}* completed successfully after {}s.",
-                            project_name, duration
+                            "✅ Deploy for project *{}* completed successfully after {}s, triggered by {}.",
+                            project_name, duration, job.trigger(),
                         ),
                         Err(err) => format!(
                             "⚠️ Deploy for project *{}* failed.\n```\n{}\n```",

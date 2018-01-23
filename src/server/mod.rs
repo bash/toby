@@ -1,4 +1,4 @@
-use super::worker::Job;
+use super::worker::{Job, JobTrigger};
 use super::config::Config;
 use rocket_contrib::Json;
 use rocket::{self, State};
@@ -43,9 +43,16 @@ fn deploy(
                 .filter(|token| token.secret() == secret && token.can_access(&project_name))
                 .is_some()
         })
-        .map(|_| match tx.send(Job::new(project_name)) {
-            Ok(_) => Ok(Json(BuildResponse::new())),
-            Err(_) => Err(Status::InternalServerError),
+        .map(|_| {
+            match tx.send(Job::new(
+                project_name,
+                JobTrigger::Webhook {
+                    token: token.into(),
+                },
+            )) {
+                Ok(_) => Ok(Json(BuildResponse::new())),
+                Err(_) => Err(Status::InternalServerError),
+            }
         })
 }
 
