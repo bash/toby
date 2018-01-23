@@ -144,7 +144,7 @@ command = ["systemctl", "restart", "dreams"]
 
 > Failure is defined as either a on-zero exit status or an error with calling the command (e.g. not found, wrong permissions, etc.)
 
-If set to true, failure of this command will be ignored and the deploy will resume as if the command was successful.
+If set to `true`, failure of this command will be ignored and the deploy will resume as if the command was successful.
 
 ```toml
 [[scripts]]
