@@ -2,7 +2,6 @@
 #![plugin(rocket_codegen)]
 
 extern crate clap;
-extern crate ipc_channel;
 extern crate nanoid;
 extern crate reqwest;
 extern crate rocket;
@@ -16,5 +15,4 @@ extern crate toml;
 pub mod config;
 pub mod worker;
 pub mod server;
-mod ipc;
 pub mod telegram;
