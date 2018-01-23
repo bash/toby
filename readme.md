@@ -63,7 +63,7 @@ Configuration files are written in [TOML (Tom's Obvious, Minimal Language)](http
 
 The main configuration file is found in `/etc/toby/toby.toml`:
 
-#### The `[listen]` section (required)
+#### The `[listen]` section
 
 ```toml
 [listen]
@@ -71,11 +71,11 @@ address = "0.0.0.0"
 port = 8629
 ```
 
-##### The `address` field (required)
+##### The `address` field
 
 The address field defines the address to which the http server will bind.
 
-##### The `port` field (required)
+##### The `port` field
 
 The port field specifies the port on which the http server will listen.
 
