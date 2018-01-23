@@ -24,7 +24,6 @@ LOCAL_CONFIG_DIR=/etc cargo build --release
 [[ -d %{buildroot} ]] && rm -rf "%{buildroot}"
 
 install -d -m 0755 %{buildroot}%{toby_confdir}
-install -d -m 0755 %{buildroot}%{toby_confdir}/conf.d
 install -d -m 0755 %{buildroot}%{unitdir}
 install -d -m 0755 %{buildroot}%{bindir}
 
@@ -36,7 +35,7 @@ cp %{_builddir}/target/release/tobyd %{buildroot}%{bindir}/
 
 %post
 systemctl --no-reload preset toby.service
-mkdir -p %{toby_confdir}
+mkdir -p %{toby_confdir}/conf.d
 
 %clean
 rm -rf %{_builddir}
@@ -44,7 +43,8 @@ rm -rf %{_builddir}
 %files
 %defattr(-,root,root)
 %dir %{toby_confdir}
-%dir %{toby_confdir}
 %config(noreplace) %{toby_confdir}/toby.toml
+%config(noreplace) %{toby_confdir}/tokens.toml
 %{bindir}/toby
+%{bindir}/tobyd
 %{unitdir}/toby.service
