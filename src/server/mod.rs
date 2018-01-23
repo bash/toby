@@ -59,10 +59,17 @@ fn deploy(
 }
 
 pub fn start_server(config: Config, sender: SyncSender<Job>) {
-    let rocket_config = ConfigBuilder::new(Environment::Production)
-        .address(config.main().listen().address().clone())
-        .port(config.main().listen().port())
-        .unwrap();
+    let rocket_config = {
+        let builder = ConfigBuilder::new(Environment::Production)
+            .address(config.main().listen().address().clone())
+            .port(config.main().listen().port());
+
+        if let Some(ref tls) = *config.main().tls() {
+            builder.tls(tls.certificate(), tls.certificate_key())
+        } else {
+            builder
+        }
+    }.unwrap();
 
     rocket::custom(rocket_config, false)
         .attach(AdHoc::on_launch(|_| status!("Server is starting...")))

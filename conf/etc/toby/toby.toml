@@ -3,7 +3,12 @@
 # address = "0.0.0.0"
 # port = 8629
 
-# The bot can notify you about success/failure of deploys through telegram.
+# Although not required it is recommended to enable TLS.
+# [tls]
+# certificate = "/etc/letsencrypt/live/toby.friendly/fullchain.pem"
+# certificate_key = "/etc/letsencrypt/live/toby.friendly/privkey.pem"
+
+# The bot can notify you about success/failure of deploys through telegram. Requires TLS.
 # [telegram]
 # token = "TOKEN"
 # chat_id = "CHAT_ID"

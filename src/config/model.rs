@@ -26,6 +26,7 @@ pub struct Script {
 pub struct MainConfig {
     #[serde(default)] listen: ListenConfig,
     telegram: Option<TelegramConfig>,
+    tls: Option<TlsConfig>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -38,6 +39,12 @@ pub struct ListenConfig {
 pub struct TelegramConfig {
     token: String,
     chat_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TlsConfig {
+    certificate: String,
+    certificate_key: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -100,6 +107,10 @@ impl MainConfig {
     pub fn telegram(&self) -> &Option<TelegramConfig> {
         &self.telegram
     }
+
+    pub fn tls(&self) -> &Option<TlsConfig> {
+        &self.tls
+    }
 }
 
 impl ListenConfig {
@@ -119,6 +130,16 @@ impl TelegramConfig {
 
     pub fn chat_id(&self) -> &str {
         &self.chat_id
+    }
+}
+
+impl TlsConfig {
+    pub fn certificate(&self) -> &str {
+        &self.certificate
+    }
+
+    pub fn certificate_key(&self) -> &str {
+        &self.certificate_key
     }
 }
 
