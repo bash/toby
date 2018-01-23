@@ -35,7 +35,7 @@ The HTTP API is exposed on port `8629` by default.
 This endpoint will trigger a deploy for the given project. It will return A `404` status if either the project isn't configured or when the access checks fail.
 
 ```sh
-curl -X POST http://toby.woof:8629/v1/deploy/forest \
+curl -X POST http://toby.woof:8629/v1/deploy/dreams \
      -d token=travis
      -d secret=$TOBY_SECRET
 ```
@@ -106,7 +106,7 @@ This field lists the project's by identifier to which this token will have acces
 ```toml
 [travis]
 secret = "..."
-access = ["forest", "foxden"]
+access = ["dreams"]
 ```
 
 ### Projects
@@ -117,13 +117,13 @@ The filename (without extension) serves as the project's identifier.
 
 #### Example
 
-File: `/etc/toby/conf.d/playground.toml`:
+File: `/etc/toby/conf.d/dreams.toml`:
 ```toml
 [[scripts]]
-command = ["dnf", "update", "playground"]
+command = ["dnf", "update", "dreams"]
 
 [[scripts]]
-command = ["systemctl", "restart", "playground"]
+command = ["systemctl", "restart", "dreams"]
 ```
 
 #### The `[scripts]` section (required)
@@ -137,11 +137,7 @@ It must be given as an array where each argument is one element in the array.
 
 ```toml
 [[scripts]]
-command = [
-  "systemctl",
-  "restart",
-  "playground"
-]
+command = ["systemctl", "restart", "dreams"]
 ```
 
 ##### The `allow_failure` field
