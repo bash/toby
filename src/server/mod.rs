@@ -2,10 +2,12 @@ use super::worker::{Job, JobTrigger};
 use super::config::Config;
 use rocket_contrib::Json;
 use rocket::{self, State};
+use rocket::fairing::AdHoc;
 use rocket::request::Form;
 use rocket::config::{ConfigBuilder, Environment};
 use rocket::http::Status;
 use std::sync::mpsc::SyncSender;
+use super::status;
 
 #[derive(Serialize, Deserialize)]
 struct BuildResponse {
@@ -62,7 +64,8 @@ pub fn start_server(config: Config, sender: SyncSender<Job>) {
         .port(config.main().listen().port())
         .unwrap();
 
-    rocket::custom(rocket_config, true)
+    rocket::custom(rocket_config, false)
+        .attach(AdHoc::on_launch(|_| status!("Server is starting...")))
         .manage(sender)
         .manage(config)
         .mount("/", routes![deploy])

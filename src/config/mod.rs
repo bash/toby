@@ -13,6 +13,7 @@ use toml;
 
 #[derive(Debug)]
 pub enum ConfigError {
+    NotFound(PathBuf),
     ListError,
     ReadError(PathBuf),
     ParseError(PathBuf, toml::de::Error),
@@ -21,16 +22,19 @@ pub enum ConfigError {
 impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ConfigError::ListError => write!(f, "unable to list project config files"),
+            ConfigError::ListError => write!(f, "Unable to list project config files"),
             ConfigError::ReadError(ref path) => {
-                write!(f, "unable to read config file {}", path.to_string_lossy())
+                write!(f, "Unable to read config file {}", path.to_string_lossy())
             }
             ConfigError::ParseError(ref path, ref err) => write!(
                 f,
-                "error parsing config file {}\n{}:",
+                "Error parsing config file {}:\n{}",
                 path.to_string_lossy(),
                 err
             ),
+            ConfigError::NotFound(ref path) => {
+                write!(f, "Config file {} does not exist", path.to_string_lossy())
+            }
         }
     }
 }
@@ -88,29 +92,27 @@ pub fn get_config() -> Result<Config, ConfigError> {
 pub fn get_main_config() -> Result<MainConfig, ConfigError> {
     let path = find_config_file();
 
-    path.map(PathBuf::from)
-        .map(|path| {
-            read_file(&path)
-                .map_err(|_| ConfigError::ReadError(path.clone()))
-                .and_then(|string| {
-                    toml::from_str(&string)
-                        .map_err(|err| ConfigError::ParseError(path.clone(), err))
-                })
+    if !path.exists() {
+        return Err(ConfigError::NotFound(path));
+    }
+
+    read_file(&path)
+        .map_err(|_| ConfigError::ReadError(path.clone()))
+        .and_then(|string| {
+            toml::from_str(&string).map_err(|err| ConfigError::ParseError(path.clone(), err))
         })
-        .unwrap_or(Ok(MainConfig::default()))
 }
 
 pub fn get_tokens() -> Result<Tokens, ConfigError> {
     let path = find_tokens_file();
 
-    path.map(PathBuf::from)
-        .map(|path| {
-            read_file(&path)
-                .map_err(|_| ConfigError::ReadError(path.clone()))
-                .and_then(|string| {
-                    toml::from_str(&string)
-                        .map_err(|err| ConfigError::ParseError(path.clone(), err))
-                })
+    if !path.exists() {
+        return Err(ConfigError::NotFound(path));
+    }
+
+    read_file(&path)
+        .map_err(|_| ConfigError::ReadError(path.clone()))
+        .and_then(|string| {
+            toml::from_str(&string).map_err(|err| ConfigError::ParseError(path.clone(), err))
         })
-        .unwrap_or(Ok(Tokens::default()))
 }

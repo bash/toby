@@ -26,3 +26,12 @@ pub macro clap_app {
         }
     };
 }
+
+pub macro status {
+    ($fmt:expr) => {
+        println!(concat!("[toby] ", $fmt));
+    },
+    ($fmt:expr, $($arg:tt)*) => {
+        println!(concat!("[toby] ", $fmt), $($arg)*);
+    }
+}
