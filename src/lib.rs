@@ -1,4 +1,5 @@
-#![feature(plugin, decl_macro, option_filter, slice_concat_ext, custom_derive, use_extern_macros)]
+#![feature(plugin, decl_macro, option_filter, slice_concat_ext, custom_derive, use_extern_macros,
+           inclusive_range_syntax)]
 #![plugin(rocket_codegen)]
 
 extern crate clap;

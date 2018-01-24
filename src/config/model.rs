@@ -104,8 +104,8 @@ impl MainConfig {
         &self.listen
     }
 
-    pub fn telegram(&self) -> &Option<TelegramConfig> {
-        &self.telegram
+    pub fn telegram(&self) -> Option<&TelegramConfig> {
+        self.telegram.as_ref()
     }
 
     pub fn tls(&self) -> &Option<TlsConfig> {

@@ -5,7 +5,7 @@ pub use self::model::*;
 use self::context::{CommandError, JobContext};
 
 use super::config::{Config, Project};
-use super::telegram::{send_message, ParseMode, SendMessageParams};
+use super::telegram::{self, ParseMode, SendMessageParams};
 use super::status;
 use reqwest;
 use std::time::Instant;
@@ -75,7 +75,13 @@ fn deploy_project(job: &Job, project: &Project) -> Result<DeployStatus, DeployEr
 }
 
 pub fn start_worker(config: Config, receiver: Receiver<Job>) {
-    let client = reqwest::Client::new();
+    let telegram = config.main().telegram().map(|ref telegram| {
+        (
+            telegram::Api::new(reqwest::Client::new(), telegram.token()),
+            telegram.chat_id(),
+        )
+    });
+
     let projects = config.projects();
 
     for job in receiver {
@@ -84,9 +90,8 @@ pub fn start_worker(config: Config, receiver: Receiver<Job>) {
         match projects.get(project_name) {
             Some(project) => {
                 let deploy_result = deploy_project(&job, project);
-                let telegram = config.main().telegram();
 
-                if let Some(ref telegram) = *telegram {
+                if let Some((ref client, chat_id)) = telegram {
                     let message = match deploy_result {
                         Ok(DeployStatus { duration }) => format!(
                             "✅ Deploy for project *{}* completed successfully after {}s, triggered by {}.",
@@ -98,13 +103,12 @@ pub fn start_worker(config: Config, receiver: Receiver<Job>) {
                         ),
                     };
 
-                    let params = SendMessageParams {
-                        chat_id: telegram.chat_id(),
+                    let result = client.send_message(&SendMessageParams {
+                        chat_id,
                         text: &message,
                         parse_mode: Some(ParseMode::Markdown),
-                    };
-
-                    let result = send_message(&client, telegram.token(), &params);
+                        ..Default::default()
+                    });
 
                     if let Err(err) = result {
                         status!("Unable to send telegram message: {}", err);

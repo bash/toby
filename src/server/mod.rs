@@ -8,6 +8,7 @@ use rocket::config::{ConfigBuilder, Environment};
 use rocket::http::Status;
 use std::sync::mpsc::SyncSender;
 use super::status;
+use super::telegram::Update;
 
 #[derive(Serialize, Deserialize)]
 struct BuildResponse {
@@ -24,6 +25,11 @@ impl BuildResponse {
     fn new() -> Self {
         BuildResponse { queued: true }
     }
+}
+
+#[post("/hooks/telegram/<token>", format = "application/json", data = "<update>")]
+fn telegram_hook(token: String, update: Json<Update>) {
+    unimplemented!();
 }
 
 #[post("/v1/deploy/<project_name>", data = "<body>")]
@@ -71,10 +77,10 @@ pub fn start_server(config: Config, sender: SyncSender<Job>) {
         }
     }.unwrap();
 
-    rocket::custom(rocket_config, false)
+    rocket::custom(rocket_config, true)
         .attach(AdHoc::on_launch(|_| status!("Server is starting...")))
         .manage(sender)
         .manage(config)
-        .mount("/", routes![deploy])
+        .mount("/", routes![deploy, telegram_hook])
         .launch();
 }
