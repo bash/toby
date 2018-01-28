@@ -55,7 +55,7 @@ fn deploy_project(job: &Job, project: &Project) -> Result<DeployStatus, DeployEr
 }
 
 pub fn start_worker(config: Config, receiver: Receiver<Job>) {
-    let telegram_hook = TelegramHook::with_config(&config);
+    let telegram_hook = TelegramHook::from_config(&config);
     let mut hooks: Vec<&Hook> = Vec::new();
 
     if let Some(ref telegram_hook) = telegram_hook {

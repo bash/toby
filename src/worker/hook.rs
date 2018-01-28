@@ -16,7 +16,7 @@ pub trait Hook {
 }
 
 impl TelegramHook {
-    pub fn with_config(config: &Config) -> Option<Self> {
+    pub fn from_config(config: &Config) -> Option<Self> {
         config.main().telegram().map(|ref telegram| TelegramHook {
             api: telegram::Api::new(reqwest::Client::new(), telegram.token()),
             chat_id: telegram.chat_id().to_string(),
