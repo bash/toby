@@ -1,38 +1,18 @@
 mod model;
 mod context;
+mod hook;
+mod error;
 
 pub use self::model::*;
-use self::context::{CommandError, JobContext};
+use self::context::JobContext;
+use self::error::{DeployError, DeployStatus};
+use self::hook::{Hook, TelegramHook};
 
 use super::config::{Config, Project};
-use super::telegram::{self, ParseMode, SendMessageParams};
 use super::status;
-use reqwest;
 use std::time::Instant;
 use std::slice::SliceConcatExt;
-use std::io;
-use std::fmt;
 use std::sync::mpsc::Receiver;
-
-#[derive(Debug)]
-struct DeployStatus {
-    duration: u64,
-}
-
-#[derive(Debug)]
-enum DeployError {
-    ContextError(io::Error),
-    CommandError(CommandError),
-}
-
-impl fmt::Display for DeployError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            DeployError::ContextError(ref err) => write!(f, "Unable to create context: {}", err),
-            DeployError::CommandError(ref err) => write!(f, "{}", err),
-        }
-    }
-}
 
 fn deploy_project(job: &Job, project: &Project) -> Result<DeployStatus, DeployError> {
     let now = Instant::now();
@@ -75,12 +55,12 @@ fn deploy_project(job: &Job, project: &Project) -> Result<DeployStatus, DeployEr
 }
 
 pub fn start_worker(config: Config, receiver: Receiver<Job>) {
-    let telegram = config.main().telegram().map(|ref telegram| {
-        (
-            telegram::Api::new(reqwest::Client::new(), telegram.token()),
-            telegram.chat_id(),
-        )
-    });
+    let telegram_hook = TelegramHook::with_config(&config);
+    let mut hooks: Vec<&Hook> = Vec::new();
+
+    if let Some(ref telegram_hook) = telegram_hook {
+        hooks.push(telegram_hook);
+    }
 
     let projects = config.projects();
 
@@ -89,30 +69,14 @@ pub fn start_worker(config: Config, receiver: Receiver<Job>) {
 
         match projects.get(project_name) {
             Some(project) => {
+                for hook in &hooks {
+                    hook.before_deploy(&job);
+                }
+
                 let deploy_result = deploy_project(&job, project);
 
-                if let Some((ref client, chat_id)) = telegram {
-                    let message = match deploy_result {
-                        Ok(DeployStatus { duration }) => format!(
-                            "✅ Deploy for project *{}* completed successfully after {}s, triggered by {}.",
-                            project_name, duration, job.trigger(),
-                        ),
-                        Err(err) => format!(
-                            "⚠️ Deploy for project *{}* failed.\n```\n{}\n```",
-                            project_name, err
-                        ),
-                    };
-
-                    let result = client.send_message(&SendMessageParams {
-                        chat_id,
-                        text: &message,
-                        parse_mode: Some(ParseMode::Markdown),
-                        ..Default::default()
-                    });
-
-                    if let Err(err) = result {
-                        status!("Unable to send telegram message: {}", err);
-                    }
+                for hook in &hooks {
+                    hook.after_deploy(&job, &deploy_result);
                 }
             }
             None => status!("Project {} does not exist", project_name),
