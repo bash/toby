@@ -17,6 +17,7 @@ pub mod config;
 pub mod worker;
 pub mod server;
 pub mod telegram;
+pub mod database;
 
 pub macro clap_app {
     () => {
