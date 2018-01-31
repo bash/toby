@@ -1,7 +1,9 @@
 #![feature(plugin, decl_macro, option_filter, slice_concat_ext, custom_derive, use_extern_macros)]
 #![plugin(rocket_codegen)]
 
+extern crate byteorder;
 extern crate clap;
+extern crate fs2;
 extern crate nanoid;
 extern crate reqwest;
 extern crate rocket;
@@ -16,6 +18,7 @@ pub mod config;
 pub mod worker;
 pub mod server;
 pub mod telegram;
+pub mod fs;
 
 pub macro clap_app {
     () => {

@@ -14,6 +14,8 @@ toml = "0.4"
 rocket = "0.3.6"
 rocket_codegen = "0.3.6"
 tempdir = "0.3"
+fs2 = "0.4"
+byteorder = "1"
 
 [dependencies.rocket_contrib]
 version = "0.3.6"
