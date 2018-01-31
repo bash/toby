@@ -2,7 +2,7 @@ use std::fs::read_dir;
 use std::path::PathBuf;
 use std::io;
 
-const LOCAL_CONFIG_DIR: Option<&'static str> = option_env!("LOCAL_CONFIG_DIR");
+const LOCAL_CONFIG_DIR: &'static str = env!("TOBY_CONFIG_PATH");
 
 const CONFIG_EXTENSION: &'static str = "toml";
 const PROJECT_CONFIG_PATH: &'static str = "toby/conf.d";
@@ -21,7 +21,7 @@ fn is_config_file(path: &PathBuf) -> bool {
 }
 
 fn prefix_path(path: &str) -> PathBuf {
-    let mut prefixed_path = PathBuf::from(LOCAL_CONFIG_DIR.unwrap_or("./conf/etc"));
+    let mut prefixed_path = PathBuf::from(LOCAL_CONFIG_DIR);
     prefixed_path.push(path);
     prefixed_path
 }
