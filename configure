@@ -1,8 +1,8 @@
 #!/bin/sh
 
 TOBY_CONFIG_PATH=/usr/local/etc/toby
-TOBY_LOG_PATH=/usr/local/etc
-TOBY_RUNTIME_PATH=/usr/local/etc
+TOBY_LOG_PATH=/usr/local/var/log/toby
+TOBY_RUNTIME_PATH=/usr/local/var/lib/toby
 TOBY_VERSION=0.1.0
 
 while true
