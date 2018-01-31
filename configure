@@ -3,6 +3,7 @@
 TOBY_CONFIG_PATH=/usr/local/etc/toby
 TOBY_LOG_PATH=/usr/local/etc
 TOBY_RUNTIME_PATH=/usr/local/etc
+TOBY_VERSION=0.1.0
 
 while true
 do
@@ -24,6 +25,10 @@ do
             shift
             TOBY_RUNTIME_PATH=$1
             ;;
+        --version)
+            shift
+            TOBY_VERSION=$1
+            ;;
         *)
             echo "unrecognized option $1"
             exit 1
@@ -35,4 +40,6 @@ done
 rm -f Build.txt
 echo "cargo:rustc-env=TOBY_CONFIG_PATH=$TOBY_CONFIG_PATH" >> Build.txt
 echo "cargo:rustc-env=TOBY_LOG_PATH=$TOBY_LOG_PATH" >> Build.txt
-echo "cargo:rustc-env=TOBY_RUNTIME_PATH=$TOBY_LOG_PATH" >> Build.txt
+echo "cargo:rustc-env=TOBY_RUNTIME_PATH=$TOBY_RUNTIME_PATH" >> Build.txt
+echo "cargo:rustc-env=TOBY_VERSION=$TOBY_VERSION" >> Build.txt
+cat Build.txt

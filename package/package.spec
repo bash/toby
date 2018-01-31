@@ -18,7 +18,12 @@ BuildArch: x86_64
 tar -xvf %{SOURCE0}
 
 %build
-LOCAL_CONFIG_DIR=/etc VERSION=%{_version} cargo build --release
+./configure --config-path /etc/toby \
+            --log-path /var/log/toby \
+            --runtime-path /var/lib/toby \
+            --version %{_version}
+
+cargo build --release
 
 %install
 [[ -d %{buildroot} ]] && rm -rf "%{buildroot}"
@@ -27,8 +32,8 @@ install -d -m 0755 %{buildroot}%{toby_confdir}
 install -d -m 0755 %{buildroot}%{unitdir}
 install -d -m 0755 %{buildroot}%{bindir}
 
-cp %{_builddir}/conf/etc/toby/toby.toml %{buildroot}%{toby_confdir}/
-cp %{_builddir}/conf/etc/toby/tokens.toml %{buildroot}%{toby_confdir}/
+cp %{_builddir}/conf/toby.toml %{buildroot}%{toby_confdir}/
+cp %{_builddir}/conf/tokens.toml %{buildroot}%{toby_confdir}/
 cp %{_builddir}/units/toby.service %{buildroot}%{unitdir}/
 cp %{_builddir}/target/release/toby %{buildroot}%{bindir}/
 cp %{_builddir}/target/release/tobyd %{buildroot}%{bindir}/
