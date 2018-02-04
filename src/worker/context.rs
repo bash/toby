@@ -6,8 +6,11 @@ use std::fmt;
 use std::io::Write;
 use std::slice::SliceConcatExt;
 use std::borrow::{Borrow, Cow};
+use std::fs::File;
 use crate::fs::get_job_log;
 use crate::worker::Job;
+
+const UNKNOWN_EXIT_STATUS: i32 = -1;
 
 #[derive(Debug)]
 pub enum CommandError {
@@ -20,6 +23,7 @@ pub struct JobContext<'a> {
     current_dir: TempDir,
     job: &'a Job,
     envs: Vec<(&'a str, Cow<'a, str>)>,
+    log_file: File,
 }
 
 impl From<io::Error> for CommandError {
@@ -34,7 +38,7 @@ impl fmt::Display for CommandError {
             CommandError::ExitStatus(ref status) => write!(
                 f,
                 "Command failed with exit status: {}",
-                status.code().unwrap_or(-1)
+                status.code().unwrap_or(UNKNOWN_EXIT_STATUS)
             ),
             CommandError::Io(ref err) => write!(f, "Command failed: {}", err),
         }
@@ -62,28 +66,32 @@ impl<'a> JobContext<'a> {
             ("TOBY_JOB_TRIGGER", job.trigger.name().into()),
         ];
 
+        let log_file = get_job_log(&job.project, job.id)?;
+
         Ok(Self {
             current_dir,
             job,
             envs,
+            log_file,
         })
     }
 
-    pub fn run_command<S>(&self, command: &[S]) -> Result<(), CommandError>
+    pub fn run_command<S>(&mut self, command: &[S]) -> Result<(), CommandError>
     where
         S: Borrow<str> + AsRef<OsStr>,
     {
-        let job = self.job;
-        let mut log_file = get_job_log(&job.project, job.id)?;
-
-        writeln!(log_file, "[toby] Running command {:?}", command.join(" "))?;
+        writeln!(
+            self.log_file,
+            "[toby] Running command {}",
+            command.join(" ")
+        )?;
 
         let mut cmd = Command::new(&command[0]);
 
         cmd.args(&command[1..])
             .current_dir(&self.current_dir)
-            .stdout(Stdio::from(log_file.try_clone()?))
-            .stderr(Stdio::from(log_file));
+            .stdout(Stdio::from(self.log_file.try_clone()?))
+            .stderr(Stdio::from(self.log_file.try_clone()?));
 
         for &(ref key, ref value) in &self.envs {
             cmd.env(key, value.as_ref());

@@ -44,7 +44,7 @@ fn deploy_project(job: &Job, project: &Project) -> Result<DeployStatus, DeployEr
         job.trigger
     );
 
-    let context = match JobContext::new(job) {
+    let mut context = match JobContext::new(job) {
         Ok(context) => context,
         Err(err) => {
             status!("Unable to create context: {}", err);
