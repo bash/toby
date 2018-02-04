@@ -5,9 +5,9 @@ use std::io;
 const LOCAL_CONFIG_DIR: &'static str = env!("TOBY_CONFIG_PATH");
 
 const CONFIG_EXTENSION: &'static str = "toml";
-const PROJECT_CONFIG_PATH: &'static str = "toby/conf.d";
-const CONFIG_PATH: &'static str = "toby/toby.toml";
-const TOKENS_PATH: &'static str = "toby/tokens.toml";
+const PROJECT_CONFIG_PATH: &'static str = "conf.d";
+const CONFIG_PATH: &'static str = "toby.toml";
+const TOKENS_PATH: &'static str = "tokens.toml";
 
 fn is_config_file(path: &PathBuf) -> bool {
     if !path.is_file() {
