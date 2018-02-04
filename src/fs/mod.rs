@@ -49,7 +49,11 @@ pub fn get_job_log(project_name: &str, job_id: u64) -> io::Result<File> {
 
     ensure_parent(&path)?;
 
-    File::create(path)
+    OpenOptions::new()
+        .create(true)
+        .write(true)
+        .append(true)
+        .open(path)
 }
 
 ///
