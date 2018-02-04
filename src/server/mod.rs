@@ -6,12 +6,13 @@ use rocket::fairing::AdHoc;
 use rocket::request::Form;
 use rocket::config::{ConfigBuilder, Environment};
 use rocket::http::Status;
-use std::sync::mpsc::SyncSender;
 use super::status;
+use crate::fs::next_job_id;
+use crate::worker::WorkerSender;
 
 #[derive(Serialize, Deserialize)]
 struct BuildResponse {
-    queued: bool,
+    job_id: u64,
 }
 
 #[derive(FromForm)]
@@ -21,14 +22,14 @@ struct DeployInput {
 }
 
 impl BuildResponse {
-    fn new() -> Self {
-        BuildResponse { queued: true }
+    fn new(job_id: u64) -> Self {
+        BuildResponse { job_id }
     }
 }
 
 #[post("/v1/deploy/<project_name>", data = "<body>")]
 fn deploy(
-    tx: State<SyncSender<Job>>,
+    tx: State<WorkerSender>,
     config: State<Config>,
     project_name: String,
     body: Form<DeployInput>,
@@ -46,19 +47,27 @@ fn deploy(
                 .is_some()
         })
         .map(|_| {
-            match tx.send(Job::new(
-                project_name,
-                JobTrigger::Webhook {
+            let job_id = match next_job_id(&project_name) {
+                Ok(id) => id,
+                Err(_) => return Err(Status::InternalServerError),
+            };
+
+            let job = Job {
+                id: job_id,
+                project: project_name,
+                trigger: JobTrigger::Webhook {
                     token: token.into(),
                 },
-            )) {
-                Ok(_) => Ok(Json(BuildResponse::new())),
+            };
+
+            match tx.send(job) {
+                Ok(_) => Ok(Json(BuildResponse::new(job_id))),
                 Err(_) => Err(Status::InternalServerError),
             }
         })
 }
 
-pub fn start_server(config: Config, sender: SyncSender<Job>) {
+pub fn start_server(config: Config, sender: WorkerSender) {
     let rocket_config = ConfigBuilder::new(Environment::Production)
         .address(config.main().listen().address().clone())
         .port(config.main().listen().port())

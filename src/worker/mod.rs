@@ -12,7 +12,6 @@ use std::time::Instant;
 use std::slice::SliceConcatExt;
 use std::io;
 use std::fmt;
-use std::sync::mpsc::Receiver;
 
 #[derive(Debug)]
 struct DeployStatus {
@@ -36,21 +35,24 @@ impl fmt::Display for DeployError {
 
 fn deploy_project(job: &Job, project: &Project) -> Result<DeployStatus, DeployError> {
     let now = Instant::now();
-    let project_name = job.project();
-    let context = match JobContext::new() {
+    let project_name = &job.project;
+
+    status!(
+        "Starting job #{} for {}, triggered by {}",
+        job.id,
+        project_name,
+        job.trigger
+    );
+
+    let context = match JobContext::new(job) {
         Ok(context) => context,
         Err(err) => {
-            status!("Failed to create context for {}: {}", project_name, err);
+            status!("Unable to create context: {}", err);
             return Err(DeployError::ContextError(err));
         }
     };
 
-    status!(
-        "Building project {} with context {} triggered by {}",
-        project_name,
-        context,
-        job.trigger(),
-    );
+    println!("{}", context);
 
     for script in project.scripts() {
         let command = script.command();
@@ -74,12 +76,12 @@ fn deploy_project(job: &Job, project: &Project) -> Result<DeployStatus, DeployEr
     })
 }
 
-pub fn start_worker(config: Config, receiver: Receiver<Job>) {
+pub fn start_worker(config: Config, receiver: WorkerReceiver) {
     let client = reqwest::Client::new();
     let projects = config.projects();
 
     for job in receiver {
-        let project_name = job.project();
+        let project_name = &job.project;
 
         match projects.get(project_name) {
             Some(project) => {
@@ -90,7 +92,7 @@ pub fn start_worker(config: Config, receiver: Receiver<Job>) {
                     let message = match deploy_result {
                         Ok(DeployStatus { duration }) => format!(
                             "✅ Deploy for project *{}* completed successfully after {}s, triggered by {}.",
-                            project_name, duration, job.trigger(),
+                            project_name, duration, job.trigger,
                         ),
                         Err(err) => format!(
                             "⚠️ Deploy for project *{}* failed.\n```\n{}\n```",
