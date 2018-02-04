@@ -21,14 +21,14 @@ pub mod server;
 pub mod telegram;
 pub mod fs;
 
-pub macro clap_app {
-    () => {
-        {
-            let version = env!("TOBY_VERSION");
+pub macro clap_app() {
+    {
+        let version = env!("TOBY_VERSION");
 
-            app_from_crate!().version(version).about("🤖 Toby the friendly server bot")
-        }
-    };
+        app_from_crate!()
+            .version(version)
+            .about("🤖 Toby the friendly server bot")
+    }
 }
 
 pub macro status {
