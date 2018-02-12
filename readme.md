@@ -49,7 +49,7 @@ The HTTP API is exposed on port `8629` by default.
 This endpoint will trigger a job for the given project. It will return A `404` status if either the project isn't configured or when the access checks fail.
 
 ```sh
-curl -X POST http://toby.server:8629/v1/deploy/dreams \
+curl -X POST http://toby.server:8629/v1/jobs/dreams \
      -d token=travis \
      -d secret=$TOBY_SECRET
 ```
