@@ -12,6 +12,10 @@ impl FileLock {
 
         Ok(FileLock { f })
     }
+
+    pub fn file(&self) -> &File {
+        &self.f
+    }
 }
 
 impl Read for FileLock {

@@ -82,5 +82,8 @@ pub fn next_job_id(project_name: &str) -> io::Result<u64> {
     // write next id
     file.write_u64::<NativeEndian>(next_id + 1)?;
 
+    // make sure file is truncated to a u64
+    file.file().set_len(8)?;
+
     Ok(next_id)
 }
