@@ -37,7 +37,7 @@ fn run_job(job: &Job, project: &Project) -> Result<(), JobError> {
         job.trigger
     );
 
-    let mut context = match JobContext::new(job) {
+    let mut context = match JobContext::new(job, project) {
         Ok(context) => context,
         Err(err) => {
             status!("Unable to create context: {}", err);
@@ -66,7 +66,7 @@ fn run_scripts(context: &mut JobContext, scripts: &[Script]) -> Result<(), JobEr
             status!("{}", err);
 
             if !script.allow_failure() {
-                status!("Unexpected failure. Cancelling deploy.");
+                status!("Unexpected failure. Cancelling job.");
                 return Err(JobError::CommandError(err));
             }
         }

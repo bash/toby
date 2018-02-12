@@ -14,6 +14,7 @@ pub struct Config {
 pub struct Project {
     repository: Option<String>,
     scripts: Vec<Script>,
+    pub environment: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

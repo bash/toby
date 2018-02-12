@@ -7,8 +7,10 @@ use std::io::Write;
 use std::slice::SliceConcatExt;
 use std::borrow::{Borrow, Cow};
 use std::fs::File;
+use std::collections::HashMap;
 use crate::fs::get_job_log;
 use crate::worker::Job;
+use crate::config::Project;
 
 const UNKNOWN_EXIT_STATUS: i32 = -1;
 
@@ -22,7 +24,7 @@ pub enum CommandError {
 pub struct JobContext<'a> {
     current_dir: TempDir,
     job: &'a Job,
-    envs: Vec<(&'a str, Cow<'a, str>)>,
+    environment: HashMap<&'a str, Cow<'a, str>>,
     log_file: File,
 }
 
@@ -47,7 +49,7 @@ impl fmt::Display for CommandError {
 
 impl<'a> fmt::Display for JobContext<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for &(ref key, ref value) in &self.envs {
+        for (key, value) in &self.environment {
             writeln!(f, "  {}={}", key, value)?;
         }
 
@@ -58,20 +60,24 @@ impl<'a> fmt::Display for JobContext<'a> {
 }
 
 impl<'a> JobContext<'a> {
-    pub fn new(job: &'a Job) -> io::Result<Self> {
+    pub fn new(job: &'a Job, project: &'a Project) -> io::Result<Self> {
         let current_dir = TempDir::new("toby-job")?;
 
-        let envs = vec![
-            ("TOBY_JOB_ID", job.id.to_string().into()),
-            ("TOBY_JOB_TRIGGER", job.trigger.name().into()),
-        ];
+        let mut environment: HashMap<&'a str, Cow<'a, str>> = project
+            .environment
+            .iter()
+            .map(|(key, value)| (key.as_str(), Cow::Borrowed(value.as_str())))
+            .collect();
+
+        environment.insert("TOBY_JOB_ID", job.id.to_string().into());
+        environment.insert("TOBY_JOB_TRIGGER", job.trigger.name().into());
 
         let log_file = get_job_log(&job.project, job.id)?;
 
         Ok(Self {
             current_dir,
             job,
-            envs,
+            environment,
             log_file,
         })
     }
@@ -93,7 +99,7 @@ impl<'a> JobContext<'a> {
             .stdout(Stdio::from(self.log_file.try_clone()?))
             .stderr(Stdio::from(self.log_file.try_clone()?));
 
-        for &(ref key, ref value) in &self.envs {
+        for (key, value) in &self.environment {
             cmd.env(key, value.as_ref());
         }
 
