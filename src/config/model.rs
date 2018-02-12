@@ -11,37 +11,48 @@ pub struct Config {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Project {
     repository: Option<String>,
     scripts: Vec<Script>,
+    #[serde(default)]
     pub environment: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Script {
     command: Vec<String>,
-    #[serde(default)] allow_failure: bool,
+    #[serde(default)]
+    allow_failure: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct MainConfig {
-    #[serde(default)] listen: ListenConfig,
+    #[serde(default)]
+    listen: ListenConfig,
     telegram: Option<TelegramConfig>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct ListenConfig {
-    #[serde(default = "default_port")] port: u16,
-    #[serde(default = "default_address")] address: String,
+    #[serde(default = "default_port")]
+    port: u16,
+    #[serde(default = "default_address")]
+    address: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct TelegramConfig {
     token: String,
     chat_id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Token {
     secret: String,
     access: HashSet<String>,
