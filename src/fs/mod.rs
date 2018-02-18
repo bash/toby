@@ -33,8 +33,7 @@ fn job_log_path(project_name: &str, job_id: u64) -> PathBuf {
     let mut path = PathBuf::from(LOG_PATH);
 
     path.push("jobs");
-    path.push(project_name);
-    path.push(job_id.to_string());
+    path.push(format!("{}-{}", project_name, job_id));
 
     path.set_extension("log");
 
