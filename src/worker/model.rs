@@ -14,8 +14,9 @@ pub struct Job {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ArchivedJob {
-    pub trigger: JobTrigger,
     pub started_at: u64,
+    pub successful: bool,
+    pub trigger: JobTrigger,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -44,10 +45,11 @@ impl fmt::Display for JobTrigger {
 }
 
 impl Job {
-    pub fn archive(&self, started_at: u64) -> ArchivedJob {
+    pub fn archive(&self, started_at: u64, successful: bool) -> ArchivedJob {
         ArchivedJob {
             trigger: self.trigger.clone(),
             started_at,
+            successful,
         }
     }
 }

@@ -64,10 +64,11 @@ impl<'a> JobRunner<'a> {
             self.job.trigger
         );
 
-        self.run_scripts()?;
-        self.archive_job(started_at)?;
+        let result = self.run_scripts();
 
-        Ok(())
+        self.archive_job(started_at, result.is_ok())?;
+
+        result
     }
 
     fn run_scripts(&self) -> Result<(), Error> {
@@ -98,12 +99,12 @@ impl<'a> JobRunner<'a> {
         Ok(())
     }
 
-    fn archive_job(&self, started_at: u64) -> Result<(), Error> {
+    fn archive_job(&self, started_at: u64, successful: bool) -> Result<(), Error> {
         let job = &self.job;
 
         let file = get_job_archive_file(&job.project, job.id).map_err(Error::ArchiveError)?;
         let mut buf_writer = io::BufWriter::new(file);
-        let archived_job = self.job.archive(started_at);
+        let archived_job = self.job.archive(started_at, successful);
         let archived_job_str = toml::to_string(&archived_job).expect("unable to serialize job");
 
         buf_writer
