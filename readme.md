@@ -37,7 +37,7 @@ rpm -Uvh toby-<VERSION>-1.x86_64.rpm
 
 The HTTP API is exposed on port `8629` by default.
 
-### `POST /v1/deploy/:project`
+### `POST /v1/jobs/:project`
 
 #### Params
 
@@ -46,14 +46,45 @@ The HTTP API is exposed on port `8629` by default.
 | token    | The token's identifier (e.g. `travis`) |
 | secret   | Secret associated with token           |
 
-This endpoint will trigger a deploy for the given project. It will return A `404` status if either the project isn't configured or when the access checks fail.
+This endpoint will trigger a job for the given project. It will return A `404` status if either the project isn't configured or when the access checks fail.
 
 ```sh
-curl -X POST http://toby.woof:8629/v1/deploy/dreams \
-     -d token=travis
+curl -X POST http://toby.server:8629/v1/jobs/dreams \
+     -d token=travis \
      -d secret=$TOBY_SECRET
 ```
 
+## Jobs
+
+A job is triggered using the [`/v1/jobs/:project`] endpoint. Each job receives a unique id (incremental).
+
+### Execution Order
+
+Jobs are executed in the same order that they were queued. Note however that this is only true for jobs of the same project.  
+This will allow for future changes to run jobs for different projects in parallel.
+
+### Working Directory
+
+Toby runs each job in a blank directory that is erased after the job has completed.
+
+### Environment
+
+Jobs inherit environment variables from the `tobyd` process.
+Additional variables can be set using the [`environment` section](#the-environment-section-optional).
+
+#### Special Environment variables
+
+These environment variables take precedence over the variables set in the `[environment]` section.
+
+| **name**           | **description**                             |
+| ------------------ | ------------------------------------------- |
+| `TOBY_JOB_ID`      | The current job id.                         |
+| `TOBY_JOB_TRIGGER` | The job's trigger (`webhook` or `telegram`) |
+
+
+### Logs
+
+Toby stores logs in `/var/log/toby/jobs`. Log files have the format `<project>-<id>.log`.
 
 ## Configuration
 
@@ -138,6 +169,15 @@ command = ["dnf", "update", "dreams"]
 
 [[scripts]]
 command = ["systemctl", "restart", "dreams"]
+```
+
+#### The `[environment]` section (optional)
+
+Holds additional environment variables in key, value pairs that are passed to the scripts.
+
+```toml
+[environment]
+UNICORN_EMOJI="🦄"
 ```
 
 #### The `[scripts]` section (required)

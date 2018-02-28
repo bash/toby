@@ -1,96 +1,144 @@
 mod model;
 mod context;
 
-pub use self::model::*;
 use self::context::{CommandError, JobContext};
+pub use self::model::*;
 
-use super::config::{Config, Project};
-use super::telegram::{send_message, ParseMode, SendMessageParams};
-use super::status;
+use crate::config::{Config, Project};
+use crate::fs::get_job_archive_file;
+use crate::status;
+use crate::telegram::{send_message, ParseMode, SendMessageParams};
 use reqwest;
-use std::time::Instant;
-use std::slice::SliceConcatExt;
-use std::io;
 use std::fmt;
-use std::sync::mpsc::Receiver;
+use std::io;
+use std::io::Write;
+use std::slice::SliceConcatExt;
+use std::time::{SystemTime, UNIX_EPOCH};
+use toml;
 
-#[derive(Debug)]
-struct DeployStatus {
-    duration: u64,
+fn now() -> u64 {
+    let sys_time = SystemTime::now();
+
+    sys_time
+        .duration_since(UNIX_EPOCH)
+        .expect("time went backwards")
+        .as_secs()
 }
 
 #[derive(Debug)]
-enum DeployError {
+enum Error {
     ContextError(io::Error),
     CommandError(CommandError),
+    ArchiveError(io::Error),
 }
 
-impl fmt::Display for DeployError {
+#[derive(Debug)]
+struct JobRunner<'a> {
+    job: &'a Job,
+    project: &'a Project,
+}
+
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            DeployError::ContextError(ref err) => write!(f, "Unable to create context: {}", err),
-            DeployError::CommandError(ref err) => write!(f, "{}", err),
+            Error::ContextError(ref err) => write!(f, "Unable to create context: {}", err),
+            Error::CommandError(ref err) => write!(f, "{}", err),
+            Error::ArchiveError(ref err) => write!(f, "Unable to archive job: {}", err),
         }
     }
 }
 
-fn deploy_project(job: &Job, project: &Project) -> Result<DeployStatus, DeployError> {
-    let now = Instant::now();
-    let project_name = job.project();
-    let context = match JobContext::new() {
-        Ok(context) => context,
-        Err(err) => {
-            status!("Failed to create context for {}: {}", project_name, err);
-            return Err(DeployError::ContextError(err));
-        }
-    };
+impl<'a> JobRunner<'a> {
+    fn new(job: &'a Job, project: &'a Project) -> Self {
+        JobRunner { job, project }
+    }
 
-    status!(
-        "Building project {} with context {} triggered by {}",
-        project_name,
-        context,
-        job.trigger(),
-    );
+    fn run(&self) -> Result<(), Error> {
+        let started_at = now();
+        let project_name = &self.job.project;
 
-    for script in project.scripts() {
-        let command = script.command();
+        status!(
+            "Starting job #{} for {}, triggered by {}",
+            self.job.id,
+            project_name,
+            self.job.trigger
+        );
 
-        status!("Running command: {}", command.join(" "));
+        let result = self.run_scripts();
 
-        let status = context.run_command(command);
+        self.archive_job(started_at, result.is_ok())?;
 
-        if let Err(err) = status {
-            status!("{}", err);
+        result
+    }
 
-            if !script.allow_failure() {
-                status!("Unexpected failure. Cancelling deploy.");
-                return Err(DeployError::CommandError(err));
+    fn run_scripts(&self) -> Result<(), Error> {
+        let mut context = JobContext::new(&self.job, &self.project).map_err(Error::ContextError)?;
+
+        println!("{}", context);
+
+        for script in self.project.scripts() {
+            let command = script.command();
+
+            status!("Running command: {}", command.join(" "));
+
+            let status = context.run_command(command);
+
+            if let Err(ref err) = status {
+                status!("{}", err);
             }
+
+            status.map_err(Error::CommandError).or_else(|err| {
+                if script.allow_failure() {
+                    Ok(())
+                } else {
+                    Err(err)
+                }
+            })?;
         }
+
+        Ok(())
     }
 
-    Ok(DeployStatus {
-        duration: now.elapsed().as_secs(),
-    })
+    fn archive_job(&self, started_at: u64, successful: bool) -> Result<(), Error> {
+        let job = &self.job;
+
+        let file = get_job_archive_file(&job.project, job.id).map_err(Error::ArchiveError)?;
+        let mut buf_writer = io::BufWriter::new(file);
+        let archived_job = self.job.archive(started_at, successful);
+        let archived_job_str = toml::to_string(&archived_job).expect("unable to serialize job");
+
+        buf_writer
+            .write_all(archived_job_str.as_bytes())
+            .map_err(Error::ArchiveError)?;
+
+        Ok(())
+    }
 }
 
-pub fn start_worker(config: Config, receiver: Receiver<Job>) {
+pub fn start_worker(config: Config, receiver: WorkerReceiver) {
     let client = reqwest::Client::new();
     let projects = config.projects();
 
     for job in receiver {
-        let project_name = job.project();
+        let project_name = &job.project;
 
         match projects.get(project_name) {
             Some(project) => {
-                let deploy_result = deploy_project(&job, project);
+                let runner = JobRunner::new(&job, project);
+                let job_result = runner.run();
+
+                match job_result {
+                    Ok(_) => status!("Job finished successfully"),
+                    Err(ref err) => status!("{}", err),
+                };
+
                 let telegram = config.main().telegram();
 
                 if let Some(ref telegram) = *telegram {
-                    let message = match deploy_result {
-                        Ok(DeployStatus { duration }) => format!(
-                            "✅ Deploy for project *{}* completed successfully after {}s, triggered by {}.",
-                            project_name, duration, job.trigger(),
+                    let message = match job_result {
+                        Ok(_) => format!(
+                            "✅ Deploy for project *{}* completed successfully, triggered by {}.",
+                            project_name, job.trigger,
                         ),
                         Err(err) => format!(
                             "⚠️ Deploy for project *{}* failed.\n```\n{}\n```",

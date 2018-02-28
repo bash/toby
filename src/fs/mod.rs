@@ -33,12 +33,31 @@ fn job_log_path(project_name: &str, job_id: u64) -> PathBuf {
     let mut path = PathBuf::from(LOG_PATH);
 
     path.push("jobs");
-    path.push(project_name);
-    path.push(job_id.to_string());
+    path.push(format!("{}-{}", project_name, job_id));
 
     path.set_extension("log");
 
     path
+}
+
+fn job_archive_path(project_name: &str, job_id: u64) -> PathBuf {
+    let mut path = PathBuf::from(RUNTIME_PATH);
+
+    path.push("jobs");
+    path.push(project_name);
+    path.push(job_id.to_string());
+
+    path.set_extension("toml");
+
+    path
+}
+
+pub fn get_job_archive_file(project_name: &str, job_id: u64) -> io::Result<File> {
+    let path = job_archive_path(project_name, job_id);
+
+    ensure_parent(&path)?;
+
+    OpenOptions::new().create(true).write(true).open(path)
 }
 
 ///
@@ -49,7 +68,11 @@ pub fn get_job_log(project_name: &str, job_id: u64) -> io::Result<File> {
 
     ensure_parent(&path)?;
 
-    File::create(path)
+    OpenOptions::new()
+        .create(true)
+        .write(true)
+        .append(true)
+        .open(path)
 }
 
 ///
@@ -77,6 +100,9 @@ pub fn next_job_id(project_name: &str) -> io::Result<u64> {
 
     // write next id
     file.write_u64::<NativeEndian>(next_id + 1)?;
+
+    // make sure file is truncated to a u64
+    file.file().set_len(8)?;
 
     Ok(next_id)
 }

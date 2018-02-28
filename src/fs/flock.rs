@@ -13,7 +13,6 @@ impl FileLock {
         Ok(FileLock { f })
     }
 
-    /// Returns the underlying file handle of this lock.
     pub fn file(&self) -> &File {
         &self.f
     }
