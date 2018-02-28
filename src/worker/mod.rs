@@ -1,78 +1,117 @@
 mod model;
 mod context;
 
-pub use self::model::*;
 use self::context::{CommandError, JobContext};
+pub use self::model::*;
 
-use super::config::{Config, Project, Script};
-use super::telegram::{send_message, ParseMode, SendMessageParams};
-use super::status;
+use crate::config::{Config, Project};
+use crate::fs::get_job_archive_file;
+use crate::status;
+use crate::telegram::{send_message, ParseMode, SendMessageParams};
 use reqwest;
-use std::slice::SliceConcatExt;
-use std::io;
 use std::fmt;
+use std::io;
+use std::io::Write;
+use std::slice::SliceConcatExt;
+use std::time::{SystemTime, UNIX_EPOCH};
+use toml;
+
+fn now() -> u64 {
+    let sys_time = SystemTime::now();
+
+    sys_time
+        .duration_since(UNIX_EPOCH)
+        .expect("time went backwards")
+        .as_secs()
+}
 
 #[derive(Debug)]
-enum JobError {
+enum Error {
     ContextError(io::Error),
     CommandError(CommandError),
+    ArchiveError(io::Error),
 }
 
-impl fmt::Display for JobError {
+#[derive(Debug)]
+struct JobRunner<'a> {
+    job: &'a Job,
+    project: &'a Project,
+}
+
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            JobError::ContextError(ref err) => write!(f, "Unable to create context: {}", err),
-            JobError::CommandError(ref err) => write!(f, "{}", err),
+            Error::ContextError(ref err) => write!(f, "Unable to create context: {}", err),
+            Error::CommandError(ref err) => write!(f, "{}", err),
+            Error::ArchiveError(ref err) => write!(f, "Unable to archive job: {}", err),
         }
     }
 }
 
-fn run_job(job: &Job, project: &Project) -> Result<(), JobError> {
-    let project_name = &job.project;
+impl<'a> JobRunner<'a> {
+    fn new(job: &'a Job, project: &'a Project) -> Self {
+        JobRunner { job, project }
+    }
 
-    status!(
-        "Starting job #{} for {}, triggered by {}",
-        job.id,
-        project_name,
-        job.trigger
-    );
+    fn run(&self) -> Result<(), Error> {
+        let started_at = now();
+        let project_name = &self.job.project;
 
-    let mut context = match JobContext::new(job, project) {
-        Ok(context) => context,
-        Err(err) => {
-            status!("Unable to create context: {}", err);
-            return Err(JobError::ContextError(err));
-        }
-    };
+        status!(
+            "Starting job #{} for {}, triggered by {}",
+            self.job.id,
+            project_name,
+            self.job.trigger
+        );
 
-    println!("{}", context);
+        self.run_scripts()?;
+        self.archive_job(started_at)?;
 
-    let scripts_result = run_scripts(&mut context, project.scripts());
+        Ok(())
+    }
 
-    // TODO: write archived job
+    fn run_scripts(&self) -> Result<(), Error> {
+        let mut context = JobContext::new(&self.job, &self.project).map_err(Error::ContextError)?;
 
-    scripts_result
-}
+        println!("{}", context);
 
-fn run_scripts(context: &mut JobContext, scripts: &[Script]) -> Result<(), JobError> {
-    for script in scripts {
-        let command = script.command();
+        for script in self.project.scripts() {
+            let command = script.command();
 
-        status!("Running command: {}", command.join(" "));
+            status!("Running command: {}", command.join(" "));
 
-        let status = context.run_command(command);
+            let status = context.run_command(command);
 
-        if let Err(err) = status {
-            status!("{}", err);
-
-            if !script.allow_failure() {
-                status!("Unexpected failure. Cancelling job.");
-                return Err(JobError::CommandError(err));
+            if let Err(ref err) = status {
+                status!("{}", err);
             }
+
+            status.map_err(Error::CommandError).or_else(|err| {
+                if script.allow_failure() {
+                    Ok(())
+                } else {
+                    Err(err)
+                }
+            })?;
         }
+
+        Ok(())
     }
 
-    Ok(())
+    fn archive_job(&self, started_at: u64) -> Result<(), Error> {
+        let job = &self.job;
+
+        let file = get_job_archive_file(&job.project, job.id).map_err(Error::ArchiveError)?;
+        let mut buf_writer = io::BufWriter::new(file);
+        let archived_job = self.job.archive(started_at);
+        let archived_job_str = toml::to_string(&archived_job).expect("unable to serialize job");
+
+        buf_writer
+            .write_all(archived_job_str.as_bytes())
+            .map_err(Error::ArchiveError)?;
+
+        Ok(())
+    }
 }
 
 pub fn start_worker(config: Config, receiver: WorkerReceiver) {
@@ -84,11 +123,18 @@ pub fn start_worker(config: Config, receiver: WorkerReceiver) {
 
         match projects.get(project_name) {
             Some(project) => {
-                let deploy_result = run_job(&job, project);
+                let runner = JobRunner::new(&job, project);
+                let job_result = runner.run();
+
+                match job_result {
+                    Ok(_) => status!("Job finished successfully"),
+                    Err(ref err) => status!("{}", err),
+                };
+
                 let telegram = config.main().telegram();
 
                 if let Some(ref telegram) = *telegram {
-                    let message = match deploy_result {
+                    let message = match job_result {
                         Ok(_) => format!(
                             "✅ Deploy for project *{}* completed successfully, triggered by {}.",
                             project_name, job.trigger,

@@ -40,6 +40,26 @@ fn job_log_path(project_name: &str, job_id: u64) -> PathBuf {
     path
 }
 
+fn job_archive_path(project_name: &str, job_id: u64) -> PathBuf {
+    let mut path = PathBuf::from(RUNTIME_PATH);
+
+    path.push("jobs");
+    path.push(project_name);
+    path.push(job_id.to_string());
+
+    path.set_extension("toml");
+
+    path
+}
+
+pub fn get_job_archive_file(project_name: &str, job_id: u64) -> io::Result<File> {
+    let path = job_archive_path(project_name, job_id);
+
+    ensure_parent(&path)?;
+
+    OpenOptions::new().create(true).write(true).open(path)
+}
+
 ///
 /// Determines and creates the log file for a job.
 ///

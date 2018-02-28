@@ -15,9 +15,11 @@ pub struct Job {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ArchivedJob {
     pub trigger: JobTrigger,
+    pub started_at: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum JobTrigger {
     Webhook { token: String },
     Telegram { username: String },
@@ -42,13 +44,10 @@ impl fmt::Display for JobTrigger {
 }
 
 impl Job {
-    pub fn archive(self) -> (JobId, String, ArchivedJob) {
-        let Job {
-            id,
-            project,
-            trigger,
-        } = self;
-
-        (id, project, ArchivedJob { trigger })
+    pub fn archive(&self, started_at: u64) -> ArchivedJob {
+        ArchivedJob {
+            trigger: self.trigger.clone(),
+            started_at,
+        }
     }
 }
