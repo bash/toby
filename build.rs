@@ -20,4 +20,6 @@ Did you forget to run `./configure`?
     file.read_to_end(&mut buffer).unwrap();
 
     io::stdout().write_all(&buffer).unwrap();
+
+    println!("cargo:rerun-if-changed=Build.txt")
 }
