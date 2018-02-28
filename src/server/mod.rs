@@ -35,15 +35,15 @@ fn create_job(
     body: Form<CreateJobForm>,
 ) -> Option<Result<Json<CreateJobResponse>, Status>> {
     let CreateJobForm { token, secret } = body.into_inner();
-    let projects = config.projects();
-    let tokens = config.tokens();
+    let projects = &config.projects;
+    let tokens = &config.tokens;
 
     projects
         .get(&project_name)
         .filter(|_| {
             tokens
                 .get(&token)
-                .filter(|token| token.secret() == secret && token.can_access(&project_name))
+                .filter(|token| token.secret == secret && token.can_access(&project_name))
                 .is_some()
         })
         .map(|_| {
@@ -69,8 +69,8 @@ fn create_job(
 
 pub fn start_server(config: Config, sender: WorkerSender) {
     let rocket_config = ConfigBuilder::new(Environment::Production)
-        .address(config.main().listen().address().clone())
-        .port(config.main().listen().port())
+        .address(config.main.listen.address.clone())
+        .port(config.main.listen.port)
         .unwrap();
 
     rocket::custom(rocket_config, false)

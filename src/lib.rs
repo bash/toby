@@ -1,6 +1,7 @@
 #![feature(plugin, decl_macro, option_filter, slice_concat_ext, custom_derive, use_extern_macros,
            crate_in_paths)]
 #![plugin(rocket_codegen)]
+#![deny(dead_code)]
 
 extern crate byteorder;
 extern crate clap;

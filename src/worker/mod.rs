@@ -76,8 +76,8 @@ impl<'a> JobRunner<'a> {
 
         println!("{}", context);
 
-        for script in self.project.scripts() {
-            let command = script.command();
+        for ref script in &self.project.scripts {
+            let command = &script.command;
 
             status!("Running command: {}", command.join(" "));
 
@@ -88,7 +88,7 @@ impl<'a> JobRunner<'a> {
             }
 
             status.map_err(Error::CommandError).or_else(|err| {
-                if script.allow_failure() {
+                if script.allow_failure {
                     Ok(())
                 } else {
                     Err(err)
@@ -117,7 +117,7 @@ impl<'a> JobRunner<'a> {
 
 pub fn start_worker(config: Config, receiver: WorkerReceiver) {
     let client = reqwest::Client::new();
-    let projects = config.projects();
+    let projects = &config.projects;
 
     for job in receiver {
         let project_name = &job.project;
@@ -132,7 +132,7 @@ pub fn start_worker(config: Config, receiver: WorkerReceiver) {
                     Err(ref err) => status!("{}", err),
                 };
 
-                let telegram = config.main().telegram();
+                let telegram = &config.main.telegram;
 
                 if let Some(ref telegram) = *telegram {
                     let message = match job_result {
@@ -147,12 +147,12 @@ pub fn start_worker(config: Config, receiver: WorkerReceiver) {
                     };
 
                     let params = SendMessageParams {
-                        chat_id: telegram.chat_id(),
+                        chat_id: &telegram.chat_id,
                         text: &message,
                         parse_mode: Some(ParseMode::Markdown),
                     };
 
-                    let result = send_message(&client, telegram.token(), &params);
+                    let result = send_message(&client, &telegram.token, &params);
 
                     if let Err(err) = result {
                         status!("Unable to send telegram message: {}", err);
