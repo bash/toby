@@ -1,40 +1,40 @@
-use super::worker::{Job, JobTrigger};
 use super::config::Config;
-use rocket_contrib::Json;
-use rocket::{self, State};
-use rocket::fairing::AdHoc;
-use rocket::request::Form;
-use rocket::config::{ConfigBuilder, Environment};
-use rocket::http::Status;
 use super::status;
+use super::worker::{Job, JobTrigger};
 use crate::fs::next_job_id;
 use crate::worker::WorkerSender;
+use rocket::{self, State};
+use rocket::config::{ConfigBuilder, Environment};
+use rocket::fairing::AdHoc;
+use rocket::http::Status;
+use rocket::request::Form;
+use rocket_contrib::Json;
 
 #[derive(Serialize, Deserialize)]
-struct BuildResponse {
-    job_id: u64,
+struct CreateJobResponse {
+    id: u64,
 }
 
 #[derive(FromForm)]
-struct DeployInput {
+struct CreateJobForm {
     token: String,
     secret: String,
 }
 
-impl BuildResponse {
-    fn new(job_id: u64) -> Self {
-        BuildResponse { job_id }
+impl CreateJobResponse {
+    fn new(id: u64) -> Self {
+        CreateJobResponse { id }
     }
 }
 
-#[post("/v1/deploy/<project_name>", data = "<body>")]
-fn deploy(
+#[post("/v1/jobs/<project_name>", data = "<body>")]
+fn create_job(
     tx: State<WorkerSender>,
     config: State<Config>,
     project_name: String,
-    body: Form<DeployInput>,
-) -> Option<Result<Json<BuildResponse>, Status>> {
-    let DeployInput { token, secret } = body.into_inner();
+    body: Form<CreateJobForm>,
+) -> Option<Result<Json<CreateJobResponse>, Status>> {
+    let CreateJobForm { token, secret } = body.into_inner();
     let projects = config.projects();
     let tokens = config.tokens();
 
@@ -61,7 +61,7 @@ fn deploy(
             };
 
             match tx.send(job) {
-                Ok(_) => Ok(Json(BuildResponse::new(job_id))),
+                Ok(_) => Ok(Json(CreateJobResponse::new(job_id))),
                 Err(_) => Err(Status::InternalServerError),
             }
         })
@@ -77,6 +77,6 @@ pub fn start_server(config: Config, sender: WorkerSender) {
         .attach(AdHoc::on_launch(|_| status!("Server is starting...")))
         .manage(sender)
         .manage(config)
-        .mount("/", routes![deploy])
+        .mount("/", routes![create_job])
         .launch();
 }
