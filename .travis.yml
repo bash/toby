@@ -4,7 +4,7 @@ language: rust
 
 matrix:
   include:
-    - env: OPENSSL_VERSION=1.1.0g OPENSSL_DIR=$HOME/openssl/1.1.0g
+    - env: TARGET=x86_64-unknown-linux-musl OPENSSL_VERSION=1.1.0g OPENSSL_DIR=$HOME/openssl/1.1.0g
     - language: rust
 
 cache:
@@ -22,12 +22,16 @@ addons:
   apt:
     packages:
       - rpm
+      - musl-tools
 
 install:
   - ./.travis/install.sh
 
 before_script:
   - ./configure
+
+script:
+  - cargo build --release --target $TARGET
 
 before_deploy:
   - ./package/package.sh
