@@ -58,6 +58,11 @@ curl -X POST http://toby.server:8629/v1/jobs/dreams \
 
 A job is triggered using the [`/v1/jobs/:project`] endpoint. Each job receives a unique id (incremental).
 
+### Execution Order
+
+Jobs are executed in the same order that they were queued. Note however that this is only true for jobs of the same project.  
+This will allow for future changes to run jobs for different projects in parallel.
+
 ### Working Directory
 
 Toby runs each job in a blank directory that is erased after the job has completed.
