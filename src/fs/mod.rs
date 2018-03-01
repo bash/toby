@@ -1,14 +1,14 @@
-use std::fs::{DirBuilder, File, OpenOptions};
-use std::path::{Path, PathBuf};
-use std::io::{self, Seek, SeekFrom};
 use byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
+use std::fs::{DirBuilder, File, OpenOptions};
+use std::io::{self, Seek, SeekFrom};
+use std::path::{Path, PathBuf};
 
 mod flock;
 
 use self::flock::FileLock;
 
-const LOG_PATH: &'static str = env!("TOBY_LOG_PATH");
-const RUNTIME_PATH: &'static str = env!("TOBY_RUNTIME_PATH");
+const LOG_PATH: &str = env!("TOBY_LOG_PATH");
+const RUNTIME_PATH: &str = env!("TOBY_RUNTIME_PATH");
 
 fn ensure_parent(path: &Path) -> io::Result<()> {
     // ensure that directory exists

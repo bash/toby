@@ -1,13 +1,13 @@
 use std::fs::read_dir;
-use std::path::PathBuf;
 use std::io;
+use std::path::PathBuf;
 
-const LOCAL_CONFIG_DIR: &'static str = env!("TOBY_CONFIG_PATH");
+const LOCAL_CONFIG_DIR: &str = env!("TOBY_CONFIG_PATH");
 
-const CONFIG_EXTENSION: &'static str = "toml";
-const PROJECT_CONFIG_PATH: &'static str = "conf.d";
-const CONFIG_PATH: &'static str = "toby.toml";
-const TOKENS_PATH: &'static str = "tokens.toml";
+const CONFIG_EXTENSION: &str = "toml";
+const PROJECT_CONFIG_PATH: &str = "conf.d";
+const CONFIG_PATH: &str = "toby.toml";
+const TOKENS_PATH: &str = "tokens.toml";
 
 fn is_config_file(path: &PathBuf) -> bool {
     if !path.is_file() {
@@ -40,7 +40,7 @@ pub fn find_project_configs() -> io::Result<Vec<PathBuf>> {
         }
     }
 
-    return Ok(files);
+    Ok(files)
 }
 
 pub fn find_config_file() -> PathBuf {

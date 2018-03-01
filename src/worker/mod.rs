@@ -27,9 +27,9 @@ fn now() -> u64 {
 
 #[derive(Debug)]
 enum Error {
-    ContextError(io::Error),
-    CommandError(CommandError),
-    ArchiveError(io::Error),
+    Context(io::Error),
+    Command(CommandError),
+    Archive(io::Error),
 }
 
 #[derive(Debug)]
@@ -41,9 +41,9 @@ struct JobRunner<'a> {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Error::ContextError(ref err) => write!(f, "Unable to create context: {}", err),
-            Error::CommandError(ref err) => write!(f, "{}", err),
-            Error::ArchiveError(ref err) => write!(f, "Unable to archive job: {}", err),
+            Error::Context(ref err) => write!(f, "Unable to create context: {}", err),
+            Error::Command(ref err) => write!(f, "{}", err),
+            Error::Archive(ref err) => write!(f, "Unable to archive job: {}", err),
         }
     }
 }
@@ -72,11 +72,11 @@ impl<'a> JobRunner<'a> {
     }
 
     fn run_scripts(&self) -> Result<(), Error> {
-        let mut context = JobContext::new(&self.job, &self.project).map_err(Error::ContextError)?;
+        let mut context = JobContext::new(self.job, self.project).map_err(Error::Context)?;
 
         println!("{}", context);
 
-        for ref script in &self.project.scripts {
+        for script in &self.project.scripts {
             let command = &script.command;
 
             status!("Running command: {}", command.join(" "));
@@ -87,7 +87,7 @@ impl<'a> JobRunner<'a> {
                 status!("{}", err);
             }
 
-            status.map_err(Error::CommandError).or_else(|err| {
+            status.map_err(Error::Command).or_else(|err| {
                 if script.allow_failure {
                     Ok(())
                 } else {
@@ -102,20 +102,20 @@ impl<'a> JobRunner<'a> {
     fn archive_job(&self, started_at: u64, successful: bool) -> Result<(), Error> {
         let job = &self.job;
 
-        let file = get_job_archive_file(&job.project, job.id).map_err(Error::ArchiveError)?;
+        let file = get_job_archive_file(&job.project, job.id).map_err(Error::Archive)?;
         let mut buf_writer = io::BufWriter::new(file);
         let archived_job = self.job.archive(started_at, successful);
         let archived_job_str = toml::to_string(&archived_job).expect("unable to serialize job");
 
         buf_writer
             .write_all(archived_job_str.as_bytes())
-            .map_err(Error::ArchiveError)?;
+            .map_err(Error::Archive)?;
 
         Ok(())
     }
 }
 
-pub fn start_worker(config: Config, receiver: WorkerReceiver) {
+pub fn start_worker(config: &Config, receiver: &WorkerReceiver) {
     let client = reqwest::Client::new();
     let projects = &config.projects;
 
