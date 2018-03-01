@@ -23,7 +23,7 @@ tar -xvf %{SOURCE0}
             --runtime-path /var/lib/toby \
             --version %{_version}
 
-cargo build --release
+cargo build --release --target %{_target}
 
 %install
 [[ -d %{buildroot} ]] && rm -rf "%{buildroot}"
