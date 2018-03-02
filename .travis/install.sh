@@ -17,8 +17,8 @@ then
   cd openssl-$OPENSSL_VERSION
   CC=musl-gcc ./Configure no-dso no-ssl2 no-ssl3 linux-x86_64 -fPIC --prefix="$OPENSSL_DIR"
 
-  make --quiet -j$(nproc)
-  make --quiet install
+  make -j$(nproc)
+  make install
 fi
 
 echo -en "travis_fold:end:openssl-install\\r"
