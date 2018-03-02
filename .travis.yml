@@ -5,9 +5,7 @@ language: rust
 matrix:
   include:
     - env: TARGET=x86_64-unknown-linux-musl OPENSSL_VERSION=1.1.0g OPENSSL_DIR=$HOME/openssl/1.1.0g
-      before_script:
-        - rustup target add $TARGET
-        - ./configure
+    - language: rust
 
 cache:
   directories:
