@@ -3,58 +3,123 @@ mod context;
 mod hook;
 mod error;
 
+use self::context::{CommandError, JobContext};
 pub use self::model::*;
-use self::context::JobContext;
-use self::error::{DeployError, DeployStatus};
-use self::hook::{Hook, TelegramHook};
 
-use super::config::{Config, Project};
-use super::status;
-use std::time::Instant;
+use crate::config::{Config, Project};
+use crate::fs::get_job_archive_file;
+use crate::status;
+use crate::telegram::{send_message, ParseMode, SendMessageParams};
+use reqwest;
+use std::fmt;
+use std::io;
+use std::io::Write;
 use std::slice::SliceConcatExt;
-use std::sync::mpsc::Receiver;
+use std::time::{SystemTime, UNIX_EPOCH};
+use toml;
 
-fn deploy_project(job: &Job, project: &Project) -> Result<DeployStatus, DeployError> {
-    let now = Instant::now();
-    let project_name = job.project();
-    let context = match JobContext::new() {
-        Ok(context) => context,
-        Err(err) => {
-            status!("Failed to create context for {}: {}", project_name, err);
-            return Err(DeployError::ContextError(err));
-        }
-    };
+fn now() -> u64 {
+    let sys_time = SystemTime::now();
 
-    status!(
-        "Building project {} with context {} triggered by {}",
-        project_name,
-        context,
-        job.trigger(),
-    );
-
-    for script in project.scripts() {
-        let command = script.command();
-
-        status!("Running command: {}", command.join(" "));
-
-        let status = context.run_command(command);
-
-        if let Err(err) = status {
-            status!("{}", err);
-
-            if !script.allow_failure() {
-                status!("Unexpected failure. Cancelling deploy.");
-                return Err(DeployError::CommandError(err));
-            }
-        }
-    }
-
-    Ok(DeployStatus {
-        duration: now.elapsed().as_secs(),
-    })
+    sys_time
+        .duration_since(UNIX_EPOCH)
+        .expect("time went backwards")
+        .as_secs()
 }
 
-pub fn start_worker(config: Config, receiver: Receiver<Job>) {
+#[derive(Debug)]
+enum Error {
+    Context(io::Error),
+    Command(CommandError),
+    Archive(io::Error),
+}
+
+#[derive(Debug)]
+struct JobRunner<'a> {
+    job: &'a Job,
+    project: &'a Project,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Error::Context(ref err) => write!(f, "Unable to create context: {}", err),
+            Error::Command(ref err) => write!(f, "{}", err),
+            Error::Archive(ref err) => write!(f, "Unable to archive job: {}", err),
+        }
+    }
+}
+
+impl<'a> JobRunner<'a> {
+    fn new(job: &'a Job, project: &'a Project) -> Self {
+        JobRunner { job, project }
+    }
+
+    fn run(&self) -> Result<(), Error> {
+        let started_at = now();
+        let project_name = &self.job.project;
+
+        status!(
+            "Starting job #{} for {}, triggered by {}",
+            self.job.id,
+            project_name,
+            self.job.trigger
+        );
+
+        let result = self.run_scripts();
+
+        self.archive_job(started_at, result.is_ok())?;
+
+        result
+    }
+
+    fn run_scripts(&self) -> Result<(), Error> {
+        let mut context = JobContext::new(self.job, self.project).map_err(Error::Context)?;
+
+        println!("{}", context);
+
+        for script in &self.project.scripts {
+            let command = &script.command;
+
+            status!("Running command: {}", command.join(" "));
+
+            let status = context.run_command(command);
+
+            if let Err(ref err) = status {
+                status!("{}", err);
+            }
+
+            status.map_err(Error::Command).or_else(|err| {
+                if script.allow_failure {
+                    Ok(())
+                } else {
+                    Err(err)
+                }
+            })?;
+        }
+
+        Ok(())
+    }
+
+    fn archive_job(&self, started_at: u64, successful: bool) -> Result<(), Error> {
+        let job = &self.job;
+
+        let file = get_job_archive_file(&job.project, job.id).map_err(Error::Archive)?;
+        let mut buf_writer = io::BufWriter::new(file);
+        let archived_job = self.job.archive(started_at, successful);
+        let archived_job_str = toml::to_string(&archived_job).expect("unable to serialize job");
+
+        buf_writer
+            .write_all(archived_job_str.as_bytes())
+            .map_err(Error::Archive)?;
+
+        Ok(())
+    }
+}
+
+pub fn start_worker(config: &Config, receiver: &WorkerReceiver) {
+    let client = reqwest::Client::new();
+    let projects = &config.projects;
     let telegram_hook = TelegramHook::from_config(&config);
     let mut hooks: Vec<&Hook> = Vec::new();
 
@@ -62,21 +127,26 @@ pub fn start_worker(config: Config, receiver: Receiver<Job>) {
         hooks.push(telegram_hook);
     }
 
-    let projects = config.projects();
-
     for job in receiver {
-        let project_name = job.project();
+        let project_name = &job.project;
 
         match projects.get(project_name) {
             Some(project) => {
+                let runner = JobRunner::new(&job, project);
+
                 for hook in &hooks {
                     hook.before_deploy(&job);
                 }
 
-                let deploy_result = deploy_project(&job, project);
+                let job_result = runner.run();
+
+                match job_result {
+                    Ok(_) => status!("Job finished successfully"),
+                    Err(ref err) => status!("{}", err),
+                };
 
                 for hook in &hooks {
-                    hook.after_deploy(&job, &deploy_result);
+                    hook.after_deploy(&job, &job_result);
                 }
             }
             None => status!("Project {} does not exist", project_name),

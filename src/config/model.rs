@@ -5,52 +5,65 @@ pub type Tokens = HashMap<String, Token>;
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    main: MainConfig,
-    tokens: Tokens,
-    projects: Projects,
+    pub main: MainConfig,
+    pub tokens: Tokens,
+    pub projects: Projects,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Project {
-    repository: Option<String>,
-    scripts: Vec<Script>,
+    pub repository: Option<String>,
+    pub scripts: Vec<Script>,
+    #[serde(default)]
+    pub environment: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Script {
-    command: Vec<String>,
-    #[serde(default)] allow_failure: bool,
+    pub command: Vec<String>,
+    #[serde(default)]
+    pub allow_failure: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct MainConfig {
-    #[serde(default)] listen: ListenConfig,
-    telegram: Option<TelegramConfig>,
-    tls: Option<TlsConfig>,
+    #[serde(default)]
+    pub listen: ListenConfig,
+    pub telegram: Option<TelegramConfig>,
+    pub tls: Option<TlsConfig>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct ListenConfig {
-    #[serde(default = "default_port")] port: u16,
-    #[serde(default = "default_address")] address: String,
+    #[serde(default = "default_port")]
+    pub port: u16,
+    #[serde(default = "default_address")]
+    pub address: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct TelegramConfig {
-    token: String,
-    chat_id: String,
+    pub token: String,
+    pub chat_id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct TlsConfig {
     certificate: String,
     certificate_key: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Token {
-    secret: String,
-    access: HashSet<String>,
+    pub secret: String,
+    pub access: HashSet<String>,
 }
 
 fn default_port() -> u16 {
@@ -69,68 +82,6 @@ impl Config {
             projects,
         }
     }
-
-    pub fn main(&self) -> &MainConfig {
-        &self.main
-    }
-
-    pub fn tokens(&self) -> &Tokens {
-        &self.tokens
-    }
-
-    pub fn projects(&self) -> &Projects {
-        &self.projects
-    }
-}
-
-impl Project {
-    pub fn scripts(&self) -> &[Script] {
-        &self.scripts
-    }
-}
-
-impl Script {
-    pub fn command(&self) -> &[String] {
-        &self.command
-    }
-
-    pub fn allow_failure(&self) -> bool {
-        self.allow_failure
-    }
-}
-
-impl MainConfig {
-    pub fn listen(&self) -> &ListenConfig {
-        &self.listen
-    }
-
-    pub fn telegram(&self) -> Option<&TelegramConfig> {
-        self.telegram.as_ref()
-    }
-
-    pub fn tls(&self) -> &Option<TlsConfig> {
-        &self.tls
-    }
-}
-
-impl ListenConfig {
-    pub fn address(&self) -> &str {
-        &self.address
-    }
-
-    pub fn port(&self) -> u16 {
-        self.port
-    }
-}
-
-impl TelegramConfig {
-    pub fn token(&self) -> &str {
-        &self.token
-    }
-
-    pub fn chat_id(&self) -> &str {
-        &self.chat_id
-    }
 }
 
 impl TlsConfig {
@@ -144,10 +95,6 @@ impl TlsConfig {
 }
 
 impl Token {
-    pub fn secret(&self) -> &str {
-        &self.secret
-    }
-
     pub fn can_access(&self, project: &str) -> bool {
         self.access.contains(project)
     }

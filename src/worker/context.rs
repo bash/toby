@@ -1,8 +1,18 @@
 use tempdir::TempDir;
 use std::io;
 use std::ffi::OsStr;
-use std::process::{Command, ExitStatus};
+use std::process::{Command, ExitStatus, Stdio};
 use std::fmt;
+use std::io::Write;
+use std::slice::SliceConcatExt;
+use std::borrow::{Borrow, Cow};
+use std::fs::File;
+use std::collections::HashMap;
+use crate::fs::get_job_log;
+use crate::worker::Job;
+use crate::config::Project;
+
+const UNKNOWN_EXIT_STATUS: i32 = -1;
 
 #[derive(Debug)]
 pub enum CommandError {
@@ -11,8 +21,11 @@ pub enum CommandError {
 }
 
 #[derive(Debug)]
-pub struct JobContext {
+pub struct JobContext<'a> {
     current_dir: TempDir,
+    job: &'a Job,
+    environment: HashMap<&'a str, Cow<'a, str>>,
+    log_file: File,
 }
 
 impl From<io::Error> for CommandError {
@@ -27,38 +40,70 @@ impl fmt::Display for CommandError {
             CommandError::ExitStatus(ref status) => write!(
                 f,
                 "Command failed with exit status: {}",
-                status.code().unwrap_or(-1)
+                status.code().unwrap_or(UNKNOWN_EXIT_STATUS)
             ),
             CommandError::Io(ref err) => write!(f, "Command failed: {}", err),
         }
     }
 }
 
-impl fmt::Display for JobContext {
+impl<'a> fmt::Display for JobContext<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{{ pwd = {} }}",
-            self.current_dir.path().to_string_lossy()
-        )
+        for (key, value) in &self.environment {
+            writeln!(f, "  {}={}", key, value)?;
+        }
+
+        write!(f, "  PWD={}", self.current_dir.path().to_string_lossy())?;
+
+        Ok(())
     }
 }
 
-impl JobContext {
-    pub fn new() -> io::Result<Self> {
+impl<'a> JobContext<'a> {
+    pub fn new(job: &'a Job, project: &'a Project) -> io::Result<Self> {
         let current_dir = TempDir::new("toby-job")?;
 
-        Ok(Self { current_dir })
+        let mut environment: HashMap<&'a str, Cow<'a, str>> = project
+            .environment
+            .iter()
+            .map(|(key, value)| (key.as_str(), Cow::Borrowed(value.as_str())))
+            .collect();
+
+        environment.insert("TOBY_JOB_ID", job.id.to_string().into());
+        environment.insert("TOBY_JOB_TRIGGER", job.trigger.name().into());
+
+        let log_file = get_job_log(&job.project, job.id)?;
+
+        Ok(Self {
+            current_dir,
+            job,
+            environment,
+            log_file,
+        })
     }
 
-    pub fn run_command<S>(&self, command: &[S]) -> Result<(), CommandError>
+    pub fn run_command<S>(&mut self, command: &[S]) -> Result<(), CommandError>
     where
-        S: AsRef<OsStr>,
+        S: Borrow<str> + AsRef<OsStr>,
     {
-        let status = Command::new(&command[0])
-            .args(&command[1..])
+        writeln!(
+            self.log_file,
+            "[toby] Running command {}",
+            command.join(" ")
+        )?;
+
+        let mut cmd = Command::new(&command[0]);
+
+        cmd.args(&command[1..])
             .current_dir(&self.current_dir)
-            .status()?;
+            .stdout(Stdio::from(self.log_file.try_clone()?))
+            .stderr(Stdio::from(self.log_file.try_clone()?));
+
+        for (key, value) in &self.environment {
+            cmd.env(key, value.as_ref());
+        }
+
+        let status = cmd.status()?;
 
         if status.success() {
             return Ok(());

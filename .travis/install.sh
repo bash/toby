@@ -5,7 +5,6 @@ if [ -z "${OPENSSL_VERSION}" ]; then
   exit
 fi
 
-echo -en "travis_fold:start:openssl-install\\r"
 echo "Installing openssl $OPENSSL_VERSION"
 
 OPENSSL_DIR=$HOME/openssl/$OPENSSL_VERSION
@@ -27,5 +26,3 @@ then
   make --quiet depend
   make --quiet install
 fi
-
-echo -en "travis_fold:end:openssl-install\\r"

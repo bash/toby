@@ -1,3 +1,5 @@
 /target/
 **/*.rs.bk
 /openssl-include/
+/.vagrant/
+/Build.txt

@@ -1,5 +1,5 @@
 # This file contains tokens that give access
-# for triggering deploys through webhooks.
+# for triggering jobs through webhooks.
 
 # An example config looks like this:
 # to generate a random secret run `toby gen-secret`

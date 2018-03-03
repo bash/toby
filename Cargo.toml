@@ -2,6 +2,7 @@
 authors = ["Ruben Schmidmeister <ruben.schmidmeister@icloud.com>"]
 name = "toby"
 version = "0.1.1"
+publish = false
 
 [dependencies]
 clap = "2.29"
@@ -14,6 +15,8 @@ toml = "0.4"
 rocket = { version = "0.3.6", features = ["tls"] }
 rocket_codegen = "0.3.6"
 tempdir = "0.3"
+fs2 = "0.4"
+byteorder = "1"
 
 [dependencies.rocket_contrib]
 version = "0.3.6"

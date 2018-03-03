@@ -1,0 +1,53 @@
+#!/bin/sh
+
+TOBY_CONFIG_PATH=/usr/local/etc/toby
+TOBY_LOG_PATH=/usr/local/var/log/toby
+TOBY_RUNTIME_PATH=/usr/local/var/lib/toby
+TOBY_VERSION=0.1.0
+
+REMAINDER=$(($#%2))
+
+if [ $REMAINDER -ne 0 ]
+then
+    echo "last argument (${@: -1}) is missing a value"
+    exit
+fi
+
+while true
+do
+    if [ $# -eq 0 ]
+    then
+        break
+    fi
+
+    case $1 in
+        --config-path)
+            shift
+            TOBY_CONFIG_PATH=$1
+            ;;
+        --log-path)
+            shift
+            TOBY_LOG_PATH=$1
+            ;;
+        --runtime-path)
+            shift
+            TOBY_RUNTIME_PATH=$1
+            ;;
+        --version)
+            shift
+            TOBY_VERSION=$1
+            ;;
+        *)
+            echo "unrecognized option $1"
+            exit 1
+    esac
+
+    shift
+done
+
+rm -f Build.txt
+echo "cargo:rustc-env=TOBY_CONFIG_PATH=$TOBY_CONFIG_PATH" >> Build.txt
+echo "cargo:rustc-env=TOBY_LOG_PATH=$TOBY_LOG_PATH" >> Build.txt
+echo "cargo:rustc-env=TOBY_RUNTIME_PATH=$TOBY_RUNTIME_PATH" >> Build.txt
+echo "cargo:rustc-env=TOBY_VERSION=$TOBY_VERSION" >> Build.txt
+cat Build.txt

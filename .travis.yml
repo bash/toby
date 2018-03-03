@@ -26,6 +26,9 @@ addons:
 install:
   - ./.travis/install.sh
 
+before_script:
+  - ./configure
+
 before_deploy:
   - ./package/package.sh
   - ./.travis/prepare-deploy.sh
