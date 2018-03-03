@@ -33,25 +33,26 @@ wget <URL_TO_RPM>
 rpm -Uvh toby-<VERSION>-1.x86_64.rpm
 ```
 
-## Endpoints
+## HTTP API
 
 The HTTP API is exposed on port `8629` by default.
 
+### Authorization
+
+Authorization is done throught the `Authorization` header.
+It is prefixed with `Token ` and contains the token and secret separated with a colon.
+
+```
+Authorization: Token travis:0dbCv0tPHHNZ3KMLiWuPO
+```
+
 ### `POST /v1/jobs/:project`
 
-#### Params
-
-| **name** | **description**                        |
-| -------- | -------------------------------------- |
-| token    | The token's identifier (e.g. `travis`) |
-| secret   | Secret associated with token           |
-
-This endpoint will trigger a job for the given project. It will return A `404` status if either the project isn't configured or when the access checks fail.
+This endpoint will trigger a job for the given project. It will return `403 Forbidden` if either the project isn't configured or when the access checks fail.
 
 ```sh
 curl -X POST http://toby.server:8629/v1/jobs/dreams \
-     -d token=travis \
-     -d secret=$TOBY_SECRET
+     -H "Authorization: Token travis:$TOBY_SECRET"
 ```
 
 ## Jobs
