@@ -1,35 +1,64 @@
-use super::error::DeployResult;
+use super::JobResult;
 use super::model::Job;
-use crate::telegram;
 use crate::config::Config;
 use crate::status;
+use crate::telegram;
 use reqwest;
 
-pub struct TelegramHook {
+#[derive(Debug)]
+struct TelegramHook {
     api: telegram::Api,
     chat_id: String,
 }
 
-pub trait Hook {
-    fn before_deploy(&self, job: &Job);
-    fn after_deploy(&self, job: &Job, result: &DeployResult);
+#[derive(Debug)]
+pub(crate) struct Hooks {
+    telegram: Option<TelegramHook>,
+}
+
+pub(crate) trait Hook {
+    fn before_job(&self, job: &Job);
+    fn after_job(&self, job: &Job, result: &JobResult);
+}
+
+impl Hooks {
+    pub(crate) fn from_config(config: &Config) -> Self {
+        let telegram = TelegramHook::from_config(config);
+
+        Hooks { telegram }
+    }
+}
+
+impl Hook for Hooks {
+    fn before_job(&self, job: &Job) {
+        if let Some(ref telegram) = self.telegram {
+            telegram.before_job(job);
+        }
+    }
+
+    fn after_job(&self, job: &Job, result: &JobResult) {
+        if let Some(ref telegram) = self.telegram {
+            telegram.after_job(job, result);
+        }
+    }
 }
 
 impl TelegramHook {
-    pub fn from_config(config: &Config) -> Option<Self> {
-        config.main().telegram().map(|ref telegram| TelegramHook {
-            api: telegram::Api::new(reqwest::Client::new(), telegram.token()),
-            chat_id: telegram.chat_id().to_string(),
+    fn from_config(config: &Config) -> Option<Self> {
+        let telegram = config.main.telegram.as_ref();
+
+        telegram.map(|ref telegram| TelegramHook {
+            api: telegram::Api::new(reqwest::Client::new(), &telegram.token),
+            chat_id: telegram.chat_id.to_string(),
         })
     }
 }
 
 impl Hook for TelegramHook {
-    fn before_deploy(&self, job: &Job) {
+    fn before_job(&self, job: &Job) {
         let message = format!(
-            "⌛️ Deploy for project *{}* triggered by {}...",
-            job.project(),
-            job.trigger()
+            "⌛️ Deploy *#{}* for project *{}* triggered by {}...",
+            job.id, job.project, job.trigger
         );
 
         let result = self.api.send_message(&telegram::SendMessageParams {
@@ -44,8 +73,8 @@ impl Hook for TelegramHook {
         }
     }
 
-    fn after_deploy(&self, job: &Job, result: &DeployResult) {
-        let project_name = job.project();
+    fn after_job(&self, job: &Job, result: &JobResult) {
+        let project_name = &job.project;
 
         let message = match *result {
             Ok(_) => format!(

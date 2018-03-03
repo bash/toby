@@ -1,8 +1,9 @@
 mod model;
 
-use reqwest;
 pub use self::model::*;
+use reqwest;
 
+#[derive(Debug)]
 pub struct Api {
     client: reqwest::Client,
     api_url: String,
