@@ -5,8 +5,6 @@
 
 🤖 Toby the friendly server bot.
 
-> **⚠️ Warning:** This is a work in progress. Do not use it in production. (Or expect things to go [up in flames](https://open.spotify.com/track/06t6JWrU05BxaKPtct2P2n).)
-
 ## What does it do?
 
 Toby listens for incoming webhooks and can run pre-defined scripts for different projects. It requires that a `token` with a `secret` are passed in order to prevent that anyone can trigger jobs.
