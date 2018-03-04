@@ -26,6 +26,8 @@ If you find another interesting use case [let me know](https://github.com/bash/t
 
 There are RPM packages available from the [Releases](https://github.com/bash/toby/releases) tab on GitHub.
 
+**Disclaimer:** These RPM packages only work with Fedora 27.
+
 ```sh
 wget <URL_TO_RPM>
 rpm -Uvh toby-<VERSION>-1.x86_64.rpm
