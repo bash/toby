@@ -1,16 +1,16 @@
-use tempdir::TempDir;
-use std::io;
-use std::ffi::OsStr;
-use std::process::{Command, ExitStatus, Stdio};
-use std::fmt;
-use std::io::Write;
-use std::slice::SliceConcatExt;
-use std::borrow::{Borrow, Cow};
-use std::fs::File;
-use std::collections::HashMap;
+use crate::config::Project;
 use crate::fs::get_job_log;
 use crate::worker::Job;
-use crate::config::Project;
+use std::borrow::{Borrow, Cow};
+use std::collections::HashMap;
+use std::ffi::OsStr;
+use std::fmt;
+use std::fs::File;
+use std::io;
+use std::io::Write;
+use std::process::{Command, ExitStatus, Stdio};
+use std::slice::SliceConcatExt;
+use tempdir::TempDir;
 
 const UNKNOWN_EXIT_STATUS: i32 = -1;
 
