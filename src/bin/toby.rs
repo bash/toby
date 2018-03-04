@@ -33,7 +33,7 @@ fn telegram_setup() {
     'poll: loop {
         let updates = api.poll_updates().expect("Unable to fetch updates");
 
-        for update in updates.result {
+        for update in updates {
             if let Some(message) = update.message {
                 if let Some((command, params)) = message.bot_command() {
                     match command {

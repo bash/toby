@@ -2,7 +2,54 @@ mod model;
 
 pub use self::model::*;
 use crate::config::Config;
+use std::error;
+use std::fmt;
 use reqwest;
+use serde::Serialize;
+use serde::de::DeserializeOwned;
+use std::result;
+
+pub type Result<T> = result::Result<T, Error>;
+
+#[derive(Debug)]
+pub enum Error {
+    RequestError(reqwest::Error),
+    TelegramError(i64, String),
+    IncompleteTelegramError,
+}
+
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Error {
+        Error::RequestError(err)
+    }
+}
+
+impl error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::RequestError(ref err) => err.description(),
+            Error::TelegramError(..) => "the telegram api returned an error",
+            Error::IncompleteTelegramError => "the telegram api returned an incomplete error",
+        }
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        match *self {
+            Error::RequestError(ref err) => Some(err),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Error::RequestError(ref err) => write!(f, "request error: {}", err),
+            Error::TelegramError(code, ref description) => write!(f, "telegram error ({}): {}", code, description),
+            Error::IncompleteTelegramError => write!(f, "the telegram api returned an incomplete error"),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct Api {
@@ -24,42 +71,49 @@ impl Api {
         telegram.map(|telegram| Api::new(reqwest::Client::new(), &telegram.token))
     }
 
-    pub fn send_message(&self, params: &SendMessageParams) -> reqwest::Result<Response<Message>> {
-        self.client
-            .post(&format!("{}/sendMessage", self.api_url))
+    fn call_method<T: Serialize + ?Sized, R: DeserializeOwned>(&self, name: &str, params: &T) -> Result<R> {
+        let resp: Response<R> = self.client
+            .post(&format!("{}/{}", self.api_url, name))
             .form(&params)
             .send()?
-            .json()
+            .json()?;
+
+        if !resp.ok {
+            return match (resp.error_code, resp.description) {
+                (Some(code), Some(description)) => Err(Error::TelegramError(code, description)), 
+                _ => Err(Error::IncompleteTelegramError),
+            };
+        }
+
+        // we can safely unwrap, because a response with
+        // ok = true always has a result
+        Ok(resp.result.unwrap())
     }
 
-    pub fn set_webhook(&self, params: &SetWebhookParams) -> reqwest::Result<Response<Message>> {
-        self.client
-            .post(&format!("{}/setWebhook", self.api_url))
-            .form(&params)
-            .send()?
-            .json()
+    pub fn send_message(&self, params: &SendMessageParams) -> Result<Message> {
+        self.call_method("sendMessage", params)
     }
 
-    pub fn get_updates(&self, params: &GetUpdatesParams) -> reqwest::Result<Response<Vec<Update>>> {
-        self.client
-            .post(&format!("{}/getUpdates", self.api_url))
-            .form(&params)
-            .send()?
-            .json()
+    pub fn set_webhook(&self, params: &SetWebhookParams) -> Result<Message> {
+        self.call_method("setWebhook", params)
     }
 
-    pub fn poll_updates(&self) -> reqwest::Result<Response<Vec<Update>>> {
-        let response = self.get_updates(&Default::default())?;
+    pub fn get_updates(&self, params: &GetUpdatesParams) -> Result<Vec<Update>> {
+        self.call_method("getUpdates", params)
+    }
+
+    pub fn poll_updates(&self) -> Result<Vec<Update>> {
+        let updates = self.get_updates(&Default::default())?;
 
         // this make sure that the updates are forgotten
         // so the next time we call getUpdates we only receive new updates.
-        if let Some(last) = response.result.last() {
+        if let Some(last) = updates.last() {
             self.get_updates(&GetUpdatesParams {
                 offset: Some(last.update_id + 1),
                 ..Default::default()
             })?;
         }
 
-        Ok(response)
+        Ok(updates)
     }
 }

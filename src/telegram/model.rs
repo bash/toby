@@ -97,9 +97,9 @@ pub enum MessageEntityType {
 #[derive(Deserialize, Debug)]
 pub struct Response<T> {
     pub ok: bool,
-    pub error_code: Option<i32>,
+    pub error_code: Option<i64>,
     pub description: Option<String>,
-    pub result: T,
+    pub result: Option<T>,
 }
 
 impl Message {
