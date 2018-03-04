@@ -49,7 +49,6 @@ pub struct ListenConfig {
 #[serde(deny_unknown_fields)]
 pub struct TelegramConfig {
     pub token: String,
-    pub chat_id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

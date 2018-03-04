@@ -7,7 +7,7 @@ pub use self::model::*;
 
 use self::hook::{Hook, Hooks};
 use crate::config::{Config, Project};
-use crate::fs::get_job_archive_file;
+use crate::fs::{get_job_archive_file, get_telegram_chat_id};
 use crate::status;
 use crate::time::now;
 use std::fmt;
@@ -111,7 +111,8 @@ impl<'a> JobRunner<'a> {
 pub fn start_worker(config: &Config, receiver: &WorkerReceiver) {
     let projects = &config.projects;
 
-    let hooks = Hooks::from_config(&config);
+    let telegram_chat_id = get_telegram_chat_id().expect("Unable to read telegram chat id");
+    let hooks = Hooks::from_config(&config, telegram_chat_id);
 
     for job in receiver {
         let project_name = &job.project;

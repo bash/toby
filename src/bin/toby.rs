@@ -9,6 +9,7 @@ use clap::{AppSettings, SubCommand};
 use std::thread;
 use std::time::Duration;
 use toby::config::get_config;
+use toby::fs::write_telegram_chat_id;
 use toby::telegram::{Api, ParseMode, SendMessageParams};
 use toby::unwrap_err;
 
@@ -23,7 +24,7 @@ fn telegram_setup() {
     let sleep_duration = Duration::from_secs(3);
 
     println!(
-        "Send the following message to your bot:\n  /start {}",
+        "Send the following message to your bot:\n  /auth {}",
         token
     );
 
@@ -43,6 +44,9 @@ fn telegram_setup() {
                             let chat_id = message.chat.id;
 
                             println!("Message received. Saving chat id ({})...", chat_id);
+
+                            write_telegram_chat_id(chat_id)
+                                .expect("Unable to save telegram chat id");
 
                             api.send_message(&SendMessageParams {
                                 text: "🎉 Congratulations! Toby is now set up and will send notifications to this chat.",

@@ -22,8 +22,8 @@ pub(crate) trait Hook {
 }
 
 impl Hooks {
-    pub(crate) fn from_config(config: &Config) -> Self {
-        let telegram = TelegramHook::from_config(config);
+    pub(crate) fn from_config(config: &Config, telegram_chat_id: Option<i64>) -> Self {
+        let telegram = TelegramHook::from_config(config, telegram_chat_id);
 
         Hooks { telegram }
     }
@@ -44,13 +44,15 @@ impl Hook for Hooks {
 }
 
 impl TelegramHook {
-    fn from_config(config: &Config) -> Option<Self> {
+    fn from_config(config: &Config, chat_id: Option<i64>) -> Option<Self> {
         let telegram = config.main.telegram.as_ref();
 
-        telegram.map(|ref telegram| TelegramHook {
-            api: telegram::Api::new(reqwest::Client::new(), &telegram.token),
-            chat_id: telegram.chat_id.to_string(),
-        })
+        telegram
+            .and_then(|telegram| chat_id.map(|chat_id| (telegram, chat_id)))
+            .map(|(telegram, chat_id)| TelegramHook {
+                api: telegram::Api::new(reqwest::Client::new(), &telegram.token),
+                chat_id: chat_id.to_string(),
+            })
     }
 }
 
