@@ -3,7 +3,7 @@ mod context;
 mod hook;
 
 use self::context::{CommandError, JobContext};
-pub use self::model::*;
+pub(crate) use self::model::*;
 
 use self::hook::{Hook, Hooks};
 use crate::config::{Config, Project};
@@ -112,7 +112,7 @@ impl<'a> JobRunner<'a> {
     }
 }
 
-pub fn start_worker(config: &Config, receiver: &WorkerReceiver) {
+pub(crate) fn start_worker(config: &Config, receiver: &WorkerReceiver) {
     let projects = &config.projects;
 
     let telegram_chat_id = get_telegram_chat_id().expect("Unable to read telegram chat id");

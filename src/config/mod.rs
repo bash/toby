@@ -1,7 +1,7 @@
 mod model;
 mod find;
 
-pub use self::model::*;
+pub(crate) use self::model::*;
 
 use self::find::{find_config_file, find_project_configs, find_tokens_file};
 use std::collections::HashMap;
@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use toml;
 
 #[derive(Debug)]
-pub enum ConfigError {
+pub(crate) enum ConfigError {
     NotFound(PathBuf),
     ListError,
     ReadError(PathBuf),
@@ -48,7 +48,7 @@ fn read_file(path: &PathBuf) -> io::Result<String> {
     Ok(contents)
 }
 
-pub fn get_projects() -> Result<Projects, ConfigError> {
+pub(crate) fn get_projects() -> Result<Projects, ConfigError> {
     let config_files = match find_project_configs() {
         Ok(files) => files,
         Err(..) => return Err(ConfigError::ListError),
@@ -81,7 +81,7 @@ pub fn get_projects() -> Result<Projects, ConfigError> {
     Ok(projects)
 }
 
-pub fn get_config() -> Result<Config, ConfigError> {
+pub(crate) fn get_config() -> Result<Config, ConfigError> {
     let main = get_main_config()?;
     let tokens = get_tokens()?;
     let projects = get_projects()?;
@@ -89,7 +89,7 @@ pub fn get_config() -> Result<Config, ConfigError> {
     Ok(Config::new(main, tokens, projects))
 }
 
-pub fn get_main_config() -> Result<MainConfig, ConfigError> {
+pub(crate) fn get_main_config() -> Result<MainConfig, ConfigError> {
     let path = find_config_file();
 
     if !path.exists() {
@@ -103,7 +103,7 @@ pub fn get_main_config() -> Result<MainConfig, ConfigError> {
         })
 }
 
-pub fn get_tokens() -> Result<Tokens, ConfigError> {
+pub(crate) fn get_tokens() -> Result<Tokens, ConfigError> {
     let path = find_tokens_file();
 
     if !path.exists() {

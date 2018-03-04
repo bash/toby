@@ -26,7 +26,7 @@ fn prefix_path(path: &str) -> PathBuf {
     prefixed_path
 }
 
-pub fn find_project_configs() -> io::Result<Vec<PathBuf>> {
+pub(crate) fn find_project_configs() -> io::Result<Vec<PathBuf>> {
     let mut files = vec![];
     let path = prefix_path(PROJECT_CONFIG_PATH);
 
@@ -43,10 +43,10 @@ pub fn find_project_configs() -> io::Result<Vec<PathBuf>> {
     Ok(files)
 }
 
-pub fn find_config_file() -> PathBuf {
+pub(crate) fn find_config_file() -> PathBuf {
     prefix_path(CONFIG_PATH)
 }
 
-pub fn find_tokens_file() -> PathBuf {
+pub(crate) fn find_tokens_file() -> PathBuf {
     prefix_path(TOKENS_PATH)
 }

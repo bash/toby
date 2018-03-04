@@ -60,7 +60,7 @@ fn create_job(
     }
 }
 
-pub fn start_server(config: Config, sender: WorkerSender) {
+pub(crate) fn start_server(config: Config, sender: WorkerSender) {
     #[cfg(not(debug_assertions))]
     let environment = Environment::Production;
 

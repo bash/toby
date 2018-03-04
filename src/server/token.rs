@@ -5,7 +5,7 @@ use rocket::request::{self, FromRequest, Request, State};
 use std::ops;
 
 #[derive(Copy, Clone)]
-pub struct ValidToken<'a, 'r>(&'r config::Token, &'a str);
+pub(crate) struct ValidToken<'a, 'r>(&'r config::Token, &'a str);
 
 fn parse_authorization_header(header_val: &str) -> Option<(&str, &str)> {
     const SCHEME: &str = "Token";
@@ -23,7 +23,7 @@ fn parse_authorization_header(header_val: &str) -> Option<(&str, &str)> {
 }
 
 impl<'a, 'r> ValidToken<'a, 'r> {
-    pub fn token_name(&self) -> &'a str {
+    pub(crate) fn token_name(&self) -> &'a str {
         self.1
     }
 }

@@ -1,6 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub fn now() -> u64 {
+pub(crate) fn now() -> u64 {
     let sys_time = SystemTime::now();
 
     sys_time

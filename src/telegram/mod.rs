@@ -69,7 +69,7 @@ impl Api {
         }
     }
 
-    pub fn from_config(config: &Config) -> Option<Self> {
+    pub(crate) fn from_config(config: &Config) -> Option<Self> {
         let telegram = config.main.telegram.as_ref();
 
         telegram.map(|telegram| Api::new(reqwest::Client::new(), &telegram.token))
@@ -110,6 +110,9 @@ impl Api {
         self.call_method("getUpdates", params)
     }
 
+    ///
+    /// Gets updates and makes sure telegram 'forgets' them.
+    ///
     pub fn poll_updates(&self) -> Result<Vec<Update>> {
         let updates = self.get_updates(&Default::default())?;
 

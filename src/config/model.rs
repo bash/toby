@@ -1,68 +1,68 @@
 use std::collections::{HashMap, HashSet};
 
-pub type Projects = HashMap<String, Project>;
-pub type Tokens = HashMap<String, Token>;
+pub(crate) type Projects = HashMap<String, Project>;
+pub(crate) type Tokens = HashMap<String, Token>;
 
 #[derive(Debug, Clone)]
-pub struct Config {
-    pub main: MainConfig,
-    pub tokens: Tokens,
-    pub projects: Projects,
+pub(crate) struct Config {
+    pub(crate) main: MainConfig,
+    pub(crate) tokens: Tokens,
+    pub(crate) projects: Projects,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
-pub struct Project {
-    pub repository: Option<String>,
-    pub scripts: Vec<Script>,
+pub(crate) struct Project {
+    pub(crate) repository: Option<String>,
+    pub(crate) scripts: Vec<Script>,
     #[serde(default)]
-    pub environment: HashMap<String, String>,
+    pub(crate) environment: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
-pub struct Script {
-    pub command: Vec<String>,
+pub(crate) struct Script {
+    pub(crate) command: Vec<String>,
     #[serde(default)]
-    pub allow_failure: bool,
+    pub(crate) allow_failure: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
-pub struct MainConfig {
+pub(crate) struct MainConfig {
     #[serde(default)]
-    pub listen: ListenConfig,
-    pub telegram: Option<TelegramConfig>,
-    pub tls: Option<TlsConfig>,
+    pub(crate) listen: ListenConfig,
+    pub(crate) telegram: Option<TelegramConfig>,
+    pub(crate) tls: Option<TlsConfig>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
-pub struct ListenConfig {
+pub(crate) struct ListenConfig {
     #[serde(default = "default_port")]
-    pub port: u16,
+    pub(crate) port: u16,
     #[serde(default = "default_address")]
-    pub address: String,
+    pub(crate) address: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
-pub struct TelegramConfig {
-    pub token: String,
+pub(crate) struct TelegramConfig {
+    pub(crate) token: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
-pub struct TlsConfig {
+pub(crate) struct TlsConfig {
     certificate: String,
     certificate_key: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
-pub struct Token {
-    pub secret: String,
-    pub access: HashSet<String>,
+pub(crate) struct Token {
+    pub(crate) secret: String,
+    pub(crate) access: HashSet<String>,
 }
 
 fn default_port() -> u16 {
@@ -74,7 +74,7 @@ fn default_address() -> String {
 }
 
 impl Config {
-    pub fn new(main: MainConfig, tokens: Tokens, projects: Projects) -> Self {
+    pub(crate) fn new(main: MainConfig, tokens: Tokens, projects: Projects) -> Self {
         Config {
             main,
             tokens,
@@ -84,17 +84,17 @@ impl Config {
 }
 
 impl TlsConfig {
-    pub fn certificate(&self) -> &str {
+    pub(crate) fn certificate(&self) -> &str {
         &self.certificate
     }
 
-    pub fn certificate_key(&self) -> &str {
+    pub(crate) fn certificate_key(&self) -> &str {
         &self.certificate_key
     }
 }
 
 impl Token {
-    pub fn can_access(&self, project: &str) -> bool {
+    pub(crate) fn can_access(&self, project: &str) -> bool {
         self.access.contains(project)
     }
 }

@@ -52,7 +52,7 @@ fn job_archive_path(project_name: &str, job_id: u64) -> PathBuf {
     path
 }
 
-pub fn get_telegram_chat_id_path() -> PathBuf {
+pub(crate) fn get_telegram_chat_id_path() -> PathBuf {
     let mut path = PathBuf::from(RUNTIME_PATH);
 
     path.push("telegram_chat_id");
@@ -60,7 +60,7 @@ pub fn get_telegram_chat_id_path() -> PathBuf {
     path
 }
 
-pub fn get_job_archive_file(project_name: &str, job_id: u64) -> io::Result<File> {
+pub(crate) fn get_job_archive_file(project_name: &str, job_id: u64) -> io::Result<File> {
     let path = job_archive_path(project_name, job_id);
 
     ensure_parent(&path)?;
@@ -71,7 +71,7 @@ pub fn get_job_archive_file(project_name: &str, job_id: u64) -> io::Result<File>
 ///
 /// Determines and creates the log file for a job.
 ///
-pub fn get_job_log(project_name: &str, job_id: u64) -> io::Result<File> {
+pub(crate) fn get_job_log(project_name: &str, job_id: u64) -> io::Result<File> {
     let path = job_log_path(project_name, job_id);
 
     ensure_parent(&path)?;
@@ -86,7 +86,7 @@ pub fn get_job_log(project_name: &str, job_id: u64) -> io::Result<File> {
 ///
 /// Determines the next job id for a project and increments the counter.
 ///
-pub fn next_job_id(project_name: &str) -> io::Result<u64> {
+pub(crate) fn next_job_id(project_name: &str) -> io::Result<u64> {
     let path = get_job_id_path(project_name);
 
     // ensure that directory exists
@@ -115,7 +115,7 @@ pub fn next_job_id(project_name: &str) -> io::Result<u64> {
     Ok(next_id)
 }
 
-pub fn get_telegram_chat_id() -> io::Result<Option<i64>> {
+pub(crate) fn get_telegram_chat_id() -> io::Result<Option<i64>> {
     let path = get_telegram_chat_id_path();
 
     if !path.exists() {
@@ -129,7 +129,7 @@ pub fn get_telegram_chat_id() -> io::Result<Option<i64>> {
     Ok(Some(chat_id))
 }
 
-pub fn write_telegram_chat_id(chat_id: i64) -> io::Result<()> {
+pub(crate) fn write_telegram_chat_id(chat_id: i64) -> io::Result<()> {
     let path = get_telegram_chat_id_path();
 
     ensure_parent(&path)?;

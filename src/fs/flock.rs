@@ -2,18 +2,18 @@ use fs2::FileExt;
 use std::fs::File;
 use std::io::{self, Read, Seek, SeekFrom, Write};
 
-pub struct FileLock {
+pub(crate) struct FileLock {
     f: File,
 }
 
 impl FileLock {
-    pub fn exclusive(f: File) -> io::Result<Self> {
+    pub(crate) fn exclusive(f: File) -> io::Result<Self> {
         f.lock_exclusive()?;
 
         Ok(FileLock { f })
     }
 
-    pub fn file(&self) -> &File {
+    pub(crate) fn file(&self) -> &File {
         &self.f
     }
 }

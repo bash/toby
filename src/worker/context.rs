@@ -15,13 +15,13 @@ use tempdir::TempDir;
 const UNKNOWN_EXIT_STATUS: i32 = -1;
 
 #[derive(Debug)]
-pub enum CommandError {
+pub(crate) enum CommandError {
     ExitStatus(ExitStatus),
     Io(io::Error),
 }
 
 #[derive(Debug)]
-pub struct JobContext<'a> {
+pub(crate) struct JobContext<'a> {
     current_dir: TempDir,
     job: &'a Job,
     environment: HashMap<&'a str, Cow<'a, str>>,
@@ -60,7 +60,7 @@ impl<'a> fmt::Display for JobContext<'a> {
 }
 
 impl<'a> JobContext<'a> {
-    pub fn new(job: &'a Job, project: &'a Project) -> io::Result<Self> {
+    pub(crate) fn new(job: &'a Job, project: &'a Project) -> io::Result<Self> {
         let current_dir = TempDir::new("toby-job")?;
 
         let mut environment: HashMap<&'a str, Cow<'a, str>> = project
@@ -82,11 +82,11 @@ impl<'a> JobContext<'a> {
         })
     }
 
-    pub fn log_file(&mut self) -> &mut File {
+    pub(crate) fn log_file(&mut self) -> &mut File {
         &mut self.log_file
     }
 
-    pub fn run_command<S>(&mut self, command: &[S]) -> Result<(), CommandError>
+    pub(crate) fn run_command<S>(&mut self, command: &[S]) -> Result<(), CommandError>
     where
         S: Borrow<str> + AsRef<OsStr>,
     {
