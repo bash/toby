@@ -2,11 +2,11 @@ mod model;
 
 pub use self::model::*;
 use crate::config::Config;
-use std::error;
-use std::fmt;
 use reqwest;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
+use std::error;
+use std::fmt;
 use std::result;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -45,8 +45,12 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Error::RequestError(ref err) => write!(f, "request error: {}", err),
-            Error::TelegramError(code, ref description) => write!(f, "telegram error ({}): {}", code, description),
-            Error::IncompleteTelegramError => write!(f, "the telegram api returned an incomplete error"),
+            Error::TelegramError(code, ref description) => {
+                write!(f, "telegram error ({}): {}", code, description)
+            }
+            Error::IncompleteTelegramError => {
+                write!(f, "the telegram api returned an incomplete error")
+            }
         }
     }
 }
@@ -71,7 +75,11 @@ impl Api {
         telegram.map(|telegram| Api::new(reqwest::Client::new(), &telegram.token))
     }
 
-    fn call_method<T: Serialize + ?Sized, R: DeserializeOwned>(&self, name: &str, params: &T) -> Result<R> {
+    fn call_method<T: Serialize + ?Sized, R: DeserializeOwned>(
+        &self,
+        name: &str,
+        params: &T,
+    ) -> Result<R> {
         let resp: Response<R> = self.client
             .post(&format!("{}/{}", self.api_url, name))
             .form(&params)
@@ -80,7 +88,7 @@ impl Api {
 
         if !resp.ok {
             return match (resp.error_code, resp.description) {
-                (Some(code), Some(description)) => Err(Error::TelegramError(code, description)), 
+                (Some(code), Some(description)) => Err(Error::TelegramError(code, description)),
                 _ => Err(Error::IncompleteTelegramError),
             };
         }

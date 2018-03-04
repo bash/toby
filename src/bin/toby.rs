@@ -23,10 +23,7 @@ fn telegram_setup() {
     let api = Api::from_config(&config).expect("Telegram bot token must be configured");
     let sleep_duration = Duration::from_secs(3);
 
-    println!(
-        "Send the following message to your bot:\n  /auth {}",
-        token
-    );
+    println!("Send the following message to your bot:\n  /auth {}", token);
 
     println!("Polling for incoming message...");
 
