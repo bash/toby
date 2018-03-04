@@ -2,7 +2,6 @@
 
 #[macro_use]
 extern crate clap;
-extern crate nanoid;
 extern crate toby;
 
 use clap::{AppSettings, SubCommand};
