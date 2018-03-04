@@ -112,7 +112,7 @@ pub fn start_worker(config: &Config, receiver: &WorkerReceiver) {
     let projects = &config.projects;
 
     let telegram_chat_id = get_telegram_chat_id().expect("Unable to read telegram chat id");
-    let hooks = Hooks::from_config(&config, telegram_chat_id);
+    let hooks = Hooks::from_config(config, telegram_chat_id);
 
     for job in receiver {
         let project_name = &job.project;

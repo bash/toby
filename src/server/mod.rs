@@ -85,10 +85,7 @@ pub fn start_server(config: Config, sender: WorkerSender) {
     rocket::custom(rocket_config, false)
         .attach(AdHoc::on_launch(move |rocket| {
             let config = rocket.config();
-            let protocol = match tls_enabled {
-                true => "https",
-                false => "http",
-            };
+            let protocol = if tls_enabled { "https" } else { "http" };
 
             status!(
                 "Server is listening on {}://{}:{}",

@@ -4,9 +4,10 @@ use rocket::http::Status;
 use rocket::request::{self, FromRequest, Request, State};
 use std::ops;
 
+#[derive(Copy, Clone)]
 pub struct ValidToken<'a, 'r>(&'r config::Token, &'a str);
 
-fn parse_authorization_header<'a>(header_val: &'a str) -> Option<(&'a str, &'a str)> {
+fn parse_authorization_header(header_val: &str) -> Option<(&str, &str)> {
     const SCHEME: &str = "Token";
 
     if header_val.starts_with(SCHEME) && header_val.len() > SCHEME.len() + 1 {
