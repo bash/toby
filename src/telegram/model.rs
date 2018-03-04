@@ -22,6 +22,13 @@ pub struct SendMessageParams<'a, 'b> {
     pub reply_to_message_id: Option<i64>,
 }
 
+#[derive(Serialize, Debug, Default)]
+pub struct SetWebhookParams<'a, 'b> {
+    pub url: &'a str,
+    pub max_connections: Option<i64>,
+    pub allowed_updates: Option<&'b [&'b str]>,
+}
+
 #[derive(Deserialize, Debug)]
 pub struct Update {
     pub update_id: i64,
@@ -33,13 +40,15 @@ pub struct Message {
     pub message_id: i64,
     pub chat: Chat,
     pub text: Option<String>,
-    #[serde(default)] pub entities: Vec<MessageEntity>,
+    #[serde(default)]
+    pub entities: Vec<MessageEntity>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct Chat {
     pub id: i64,
-    #[serde(rename = "type")] pub chat_type: ChatType,
+    #[serde(rename = "type")]
+    pub chat_type: ChatType,
 }
 
 #[derive(Deserialize, Debug)]
@@ -53,7 +62,8 @@ pub struct User {
 
 #[derive(Deserialize, Debug)]
 pub struct MessageEntity {
-    #[serde(rename = "type")] pub entity_type: MessageEntityType,
+    #[serde(rename = "type")]
+    pub entity_type: MessageEntityType,
     pub offset: usize,
     pub length: usize,
     pub url: Option<String>,

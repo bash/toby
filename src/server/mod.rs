@@ -1,3 +1,4 @@
+use self::telegram::TelegramFairing;
 use self::token::ValidToken;
 use super::config::Config;
 use super::status;
@@ -68,24 +69,32 @@ pub fn start_server(config: Config, sender: WorkerSender) {
     #[cfg(debug_assertions)]
     let environment = Environment::Development;
 
+    let tls_enabled = config.main.tls.is_some();
     let rocket_config = {
         let builder = ConfigBuilder::new(environment)
             .address(config.main.listen.address.clone())
             .port(config.main.listen.port);
 
         if let Some(ref tls) = config.main.tls {
-            builder.tls(tls.certificate(), tls.certificate_key())
-        } else {
             builder
+                .tls(tls.certificate(), tls.certificate_key())
+                .unwrap()
+        } else {
+            builder.unwrap()
         }
-    }.unwrap();
+    };
 
     rocket::custom(rocket_config, false)
-        .attach(AdHoc::on_launch(|rocket| {
+        .attach(AdHoc::on_launch(move |rocket| {
             let config = rocket.config();
+            let protocol = match tls_enabled {
+                true => "https",
+                false => "http",
+            };
 
             status!(
-                "Server is listening on http://{}:{}",
+                "Server is listening on {}://{}:{}",
+                protocol,
                 config.address,
                 config.port
             );
@@ -93,5 +102,6 @@ pub fn start_server(config: Config, sender: WorkerSender) {
         .manage(sender)
         .manage(config)
         .mount("/", routes![create_job, telegram::telegram_hook])
+        .attach(TelegramFairing)
         .launch();
 }
