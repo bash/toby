@@ -33,6 +33,7 @@ pub struct MainConfig {
     #[serde(default)]
     pub listen: ListenConfig,
     pub telegram: Option<TelegramConfig>,
+    pub slack: Option<SlackConfig>,
     pub tls: Option<TlsConfig>,
 }
 
@@ -49,6 +50,13 @@ pub struct ListenConfig {
 #[serde(deny_unknown_fields)]
 pub struct TelegramConfig {
     pub token: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct SlackConfig {
+    pub bot_token: String,
+    pub channel: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

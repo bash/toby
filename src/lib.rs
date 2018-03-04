@@ -22,6 +22,7 @@ pub mod server;
 pub mod telegram;
 pub mod fs;
 pub mod time;
+pub mod slack;
 
 pub macro clap_app() {
     {
