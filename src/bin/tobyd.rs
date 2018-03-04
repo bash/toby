@@ -4,31 +4,11 @@
 extern crate clap;
 extern crate toby;
 
-use std::sync::mpsc::sync_channel;
-use std::thread;
-use toby::config::get_config;
-use toby::server::start_server;
-use toby::unwrap_err;
-use toby::worker::start_worker;
-
-// TODO: what value should I have here?
-// Note to future self: 8 was picked arbitrarily
-const CHANNEL_BOUND: usize = 8;
+use toby::clap_app;
+use toby::cli::tobyd::start;
 
 fn main() {
-    let config = unwrap_err!(get_config());
+    let _ = clap_app!().get_matches();
 
-    let (sender, receiver) = sync_channel(CHANNEL_BOUND);
-
-    let _ = toby::clap_app!().get_matches();
-
-    {
-        let config = config.clone();
-
-        thread::spawn(move || {
-            start_worker(&config, &receiver);
-        });
-    }
-
-    start_server(config, sender);
+    start();
 }

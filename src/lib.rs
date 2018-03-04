@@ -1,5 +1,5 @@
 #![feature(plugin, decl_macro, option_filter, slice_concat_ext, custom_derive, use_extern_macros,
-           inclusive_range_syntax, crate_in_paths, match_default_bindings)]
+           inclusive_range_syntax, crate_in_paths, match_default_bindings, crate_visibility_modifier)]
 #![plugin(rocket_codegen)]
 #![deny(dead_code)]
 
@@ -16,12 +16,13 @@ extern crate serde_derive;
 extern crate tempdir;
 extern crate toml;
 
-pub mod config;
-pub mod worker;
-pub mod server;
-pub mod telegram;
-pub mod fs;
-pub mod time;
+crate mod config;
+crate mod worker;
+crate mod server;
+crate mod telegram;
+crate mod fs;
+crate mod time;
+pub mod cli;
 
 pub macro clap_app() {
     {
@@ -33,7 +34,7 @@ pub macro clap_app() {
     }
 }
 
-pub macro unwrap_err($val: expr) {
+crate macro unwrap_err($val: expr) {
     match $val {
         Ok(val) => val,
         Err(err) => {
@@ -43,7 +44,7 @@ pub macro unwrap_err($val: expr) {
     };
 }
 
-pub macro status {
+crate macro status {
     ($fmt:expr) => {
         println!($fmt);
     },

@@ -79,11 +79,7 @@ impl<'a> JobRunner<'a> {
             let status = context.run_command(command);
 
             if let Err(ref err) = status {
-                let result = writeln!(
-                    context.log_file(),
-                    "[toby] {}",
-                    err
-                );
+                let result = writeln!(context.log_file(), "[toby] {}", err);
 
                 result.map_err(Error::Log)?;
             }

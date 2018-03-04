@@ -108,11 +108,11 @@ impl<'a> JobContext<'a> {
         }
 
         let status = cmd.status()?;
-        
+
         if status.success() {
             Ok(())
         } else {
             Err(CommandError::ExitStatus(status))
-        }        
+        }
     }
 }
