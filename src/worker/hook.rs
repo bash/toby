@@ -59,7 +59,7 @@ impl TelegramHook {
 impl Hook for TelegramHook {
     fn before_job(&self, job: &Job) {
         let message = format!(
-            "⌛️ Deploy *#{}* for project *{}* triggered by {}...",
+            "⌛️ Job *#{}* for project *{}* triggered by {}...",
             job.id, job.project, job.trigger
         );
 
@@ -80,11 +80,11 @@ impl Hook for TelegramHook {
 
         let message = match *result {
             Ok(_) => format!(
-                "☀️ Deploy for project *{}* completed successfully.",
+                "☀️ Job for project *{}* completed successfully.",
                 project_name
             ),
             Err(ref err) => format!(
-                "💔 Deploy for project *{}* failed.\n```\n{}\n```",
+                "💔 Job for project *{}* failed.\n```\n{}\n```",
                 project_name, err
             ),
         };

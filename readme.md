@@ -114,13 +114,11 @@ The port field specifies the port on which the http server will listen.
 #### The `[telegram]` section
 
 This section configures the integration with [Telegram](https://www.telegram.org).
-
-> The integration with telegram is not finished yet and is very likely to change. See: [Issue #6](https://github.com/bash/toby/issues/6).
+There's a guide for setting up Telegram in [docs/telegram.md](./docs/telegram.md).
 
 ```toml
 [telegram]
 token = "..."
-chat_id = "1234567"
 ```
 
 ##### The `token` field (required)
