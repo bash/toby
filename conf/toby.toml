@@ -11,3 +11,8 @@
 # The bot can notify you about success/failure of jobs through telegram.
 # [telegram]
 # token = "TOKEN"
+
+# The slack bot can notify you about success/failure through slack.
+# [slack]
+# bot_token = "BOT_TOKEN"
+# channel = "#general"
