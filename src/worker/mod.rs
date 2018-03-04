@@ -9,21 +9,12 @@ use self::hook::{Hook, Hooks};
 use crate::config::{Config, Project};
 use crate::fs::get_job_archive_file;
 use crate::status;
+use crate::time::now;
 use std::fmt;
 use std::io;
 use std::io::Write;
 use std::slice::SliceConcatExt;
-use std::time::{SystemTime, UNIX_EPOCH};
 use toml;
-
-fn now() -> u64 {
-    let sys_time = SystemTime::now();
-
-    sys_time
-        .duration_since(UNIX_EPOCH)
-        .expect("time went backwards")
-        .as_secs()
-}
 
 pub(crate) type JobResult = Result<(), Error>;
 

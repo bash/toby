@@ -21,6 +21,7 @@ pub mod worker;
 pub mod server;
 pub mod telegram;
 pub mod fs;
+pub mod time;
 
 pub macro clap_app() {
     {
@@ -30,6 +31,16 @@ pub macro clap_app() {
             .version(version)
             .about("🤖 Toby the friendly server bot")
     }
+}
+
+pub macro unwrap_err($val: expr) {
+    match $val {
+        Ok(val) => val,
+        Err(err) => {
+            eprintln!("{}", err);
+            ::std::process::exit(1);
+        }
+    };
 }
 
 pub macro status {

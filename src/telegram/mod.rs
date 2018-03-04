@@ -39,4 +39,27 @@ impl Api {
             .send()?
             .json()
     }
+
+    pub fn get_updates(&self, params: &GetUpdatesParams) -> reqwest::Result<Response<Vec<Update>>> {
+        self.client
+            .post(&format!("{}/getUpdates", self.api_url))
+            .form(&params)
+            .send()?
+            .json()
+    }
+
+    pub fn poll_updates(&self) -> reqwest::Result<Response<Vec<Update>>> {
+        let response = self.get_updates(&Default::default())?;
+
+        // this make sure that the updates are forgotten
+        // so the next time we call getUpdates we only receive new updates.
+        if let Some(last) = response.result.last() {
+            self.get_updates(&GetUpdatesParams {
+                offset: Some(last.update_id + 1),
+                ..Default::default()
+            })?;
+        }
+
+        Ok(response)
+    }
 }

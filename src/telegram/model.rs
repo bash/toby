@@ -29,6 +29,14 @@ pub struct SetWebhookParams<'a, 'b> {
     pub allowed_updates: Option<&'b [&'b str]>,
 }
 
+#[derive(Serialize, Debug, Default)]
+pub struct GetUpdatesParams<'a> {
+    pub offset: Option<i64>,
+    pub limit: Option<i64>,
+    pub timeout: Option<i64>,
+    pub allowed_updates: Option<&'a [&'a str]>,
+}
+
 #[derive(Deserialize, Debug)]
 pub struct Update {
     pub update_id: i64,
@@ -86,7 +94,7 @@ pub enum MessageEntityType {
     TextMention,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Response<T> {
     pub ok: bool,
     pub error_code: Option<i32>,
