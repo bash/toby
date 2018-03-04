@@ -30,7 +30,6 @@ pub struct Script {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct MainConfig {
-    pub domain_name: String,
     #[serde(default)]
     pub listen: ListenConfig,
     pub telegram: Option<TelegramConfig>,

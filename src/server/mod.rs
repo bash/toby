@@ -1,4 +1,3 @@
-use self::telegram::TelegramFairing;
 use self::token::ValidToken;
 use super::config::Config;
 use super::status;
@@ -12,7 +11,6 @@ use rocket::http::Status;
 use rocket::response::Failure;
 use rocket_contrib::Json;
 
-mod telegram;
 mod token;
 
 #[derive(Serialize, Deserialize)]
@@ -101,7 +99,6 @@ pub fn start_server(config: Config, sender: WorkerSender) {
         }))
         .manage(sender)
         .manage(config)
-        .mount("/", routes![create_job, telegram::telegram_hook])
-        .attach(TelegramFairing)
+        .mount("/", routes![create_job])
         .launch();
 }
