@@ -5,10 +5,10 @@ pub use self::model::*;
 
 use self::find::{find_config_file, find_project_configs, find_tokens_file};
 use std::collections::HashMap;
-use std::fs::File;
-use std::path::PathBuf;
-use std::io::{self, Read};
 use std::fmt;
+use std::fs::File;
+use std::io::{self, Read};
+use std::path::PathBuf;
 use toml;
 
 #[derive(Debug)]

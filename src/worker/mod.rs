@@ -1,32 +1,25 @@
 mod model;
 mod context;
+mod hook;
 
 use self::context::{CommandError, JobContext};
 pub use self::model::*;
 
+use self::hook::{Hook, Hooks};
 use crate::config::{Config, Project};
-use crate::fs::get_job_archive_file;
+use crate::fs::{get_job_archive_file, get_telegram_chat_id};
 use crate::status;
-use crate::telegram::{send_message, ParseMode, SendMessageParams};
-use reqwest;
+use crate::time::now;
 use std::fmt;
 use std::io;
 use std::io::Write;
 use std::slice::SliceConcatExt;
-use std::time::{SystemTime, UNIX_EPOCH};
 use toml;
 
-fn now() -> u64 {
-    let sys_time = SystemTime::now();
-
-    sys_time
-        .duration_since(UNIX_EPOCH)
-        .expect("time went backwards")
-        .as_secs()
-}
+pub(crate) type JobResult = Result<(), Error>;
 
 #[derive(Debug)]
-enum Error {
+pub(crate) enum Error {
     Context(io::Error),
     Command(CommandError),
     Archive(io::Error),
@@ -53,7 +46,7 @@ impl<'a> JobRunner<'a> {
         JobRunner { job, project }
     }
 
-    fn run(&self) -> Result<(), Error> {
+    fn run(&self) -> JobResult {
         let started_at = now();
         let project_name = &self.job.project;
 
@@ -71,7 +64,7 @@ impl<'a> JobRunner<'a> {
         result
     }
 
-    fn run_scripts(&self) -> Result<(), Error> {
+    fn run_scripts(&self) -> JobResult {
         let mut context = JobContext::new(self.job, self.project).map_err(Error::Context)?;
 
         println!("{}", context);
@@ -99,7 +92,7 @@ impl<'a> JobRunner<'a> {
         Ok(())
     }
 
-    fn archive_job(&self, started_at: u64, successful: bool) -> Result<(), Error> {
+    fn archive_job(&self, started_at: u64, successful: bool) -> JobResult {
         let job = &self.job;
 
         let file = get_job_archive_file(&job.project, job.id).map_err(Error::Archive)?;
@@ -116,8 +109,10 @@ impl<'a> JobRunner<'a> {
 }
 
 pub fn start_worker(config: &Config, receiver: &WorkerReceiver) {
-    let client = reqwest::Client::new();
     let projects = &config.projects;
+
+    let telegram_chat_id = get_telegram_chat_id().expect("Unable to read telegram chat id");
+    let hooks = Hooks::from_config(&config, telegram_chat_id);
 
     for job in receiver {
         let project_name = &job.project;
@@ -125,6 +120,9 @@ pub fn start_worker(config: &Config, receiver: &WorkerReceiver) {
         match projects.get(project_name) {
             Some(project) => {
                 let runner = JobRunner::new(&job, project);
+
+                hooks.before_job(&job);
+
                 let job_result = runner.run();
 
                 match job_result {
@@ -132,32 +130,7 @@ pub fn start_worker(config: &Config, receiver: &WorkerReceiver) {
                     Err(ref err) => status!("{}", err),
                 };
 
-                let telegram = &config.main.telegram;
-
-                if let Some(ref telegram) = *telegram {
-                    let message = match job_result {
-                        Ok(_) => format!(
-                            "✅ Deploy for project *{}* completed successfully, triggered by {}.",
-                            project_name, job.trigger,
-                        ),
-                        Err(err) => format!(
-                            "⚠️ Deploy for project *{}* failed.\n```\n{}\n```",
-                            project_name, err
-                        ),
-                    };
-
-                    let params = SendMessageParams {
-                        chat_id: &telegram.chat_id,
-                        text: &message,
-                        parse_mode: Some(ParseMode::Markdown),
-                    };
-
-                    let result = send_message(&client, &telegram.token, &params);
-
-                    if let Err(err) = result {
-                        status!("Unable to send telegram message: {}", err);
-                    }
-                }
+                hooks.after_job(&job, &job_result);
             }
             None => status!("Project {} does not exist", project_name),
         }

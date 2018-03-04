@@ -33,6 +33,7 @@ pub struct MainConfig {
     #[serde(default)]
     pub listen: ListenConfig,
     pub telegram: Option<TelegramConfig>,
+    pub tls: Option<TlsConfig>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -48,7 +49,13 @@ pub struct ListenConfig {
 #[serde(deny_unknown_fields)]
 pub struct TelegramConfig {
     pub token: String,
-    pub chat_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct TlsConfig {
+    certificate: String,
+    certificate_key: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -73,6 +80,16 @@ impl Config {
             tokens,
             projects,
         }
+    }
+}
+
+impl TlsConfig {
+    pub fn certificate(&self) -> &str {
+        &self.certificate
+    }
+
+    pub fn certificate_key(&self) -> &str {
+        &self.certificate_key
     }
 }
 

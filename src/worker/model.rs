@@ -38,7 +38,7 @@ impl JobTrigger {
 impl fmt::Display for JobTrigger {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            JobTrigger::Webhook { ref token } => write!(f, "webhook with token {}", token),
+            JobTrigger::Webhook { ref token } => write!(f, "webhook ({})", token),
             JobTrigger::Telegram { ref username } => write!(f, "telegram user {}", username),
         }
     }

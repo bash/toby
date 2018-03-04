@@ -1,6 +1,6 @@
 use fs2::FileExt;
-use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::fs::File;
+use std::io::{self, Read, Seek, SeekFrom, Write};
 
 pub struct FileLock {
     f: File,

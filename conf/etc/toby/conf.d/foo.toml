@@ -1,0 +1,17 @@
+# optionally a github repository can be given
+# (for status updates)
+repository = "bash/foo"
+
+[[scripts]]
+# executes an arbitrary command
+command = ["/usr/bin/yum", "upgrade", "foo"]
+allow_failure = true
+
+[[scripts]]
+command = ["sleep", "2"]
+
+[[scripts]]
+# executes an arbitrary command
+command = ["/usr/bin/systemctl", "restart", "foo"]
+# whether or not to allow failure
+#allow_failure = true
