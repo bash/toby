@@ -29,6 +29,9 @@ install:
 before_script:
   - ./configure
 
+script:
+  - cargo check --verbose
+
 before_deploy:
   - ./package/package.sh
   - ./.travis/prepare-deploy.sh
