@@ -1,6 +1,7 @@
 # toby
 
-[![Build Status](https://travis-ci.org/bash/toby.svg?branch=master)](https://travis-ci.org/bash/toby)
+[![Build Status](https://travis-ci.org/bash/toby.svg?branch=master)](https://travis-ci.org/bash/toby) 
+[![Telegram](https://img.shields.io/badge/telegram-Tobybot-blue.svg)](http://telegram.me/samaritan_server_bot) 
 ![Bot: Friendly](https://img.shields.io/badge/bot-friendly-ff69b4.svg)
 
 🤖 Toby the friendly server bot.
