@@ -23,6 +23,7 @@ pub(crate) enum Error {
     Context(io::Error),
     Command(CommandError),
     Archive(io::Error),
+    Log(io::Error),
 }
 
 #[derive(Debug)]
@@ -37,6 +38,7 @@ impl fmt::Display for Error {
             Error::Context(ref err) => write!(f, "Unable to create context: {}", err),
             Error::Command(ref err) => write!(f, "{}", err),
             Error::Archive(ref err) => write!(f, "Unable to archive job: {}", err),
+            Error::Log(ref err) => write!(f, "Unable write job log: {}", err),
         }
     }
 }
@@ -77,7 +79,13 @@ impl<'a> JobRunner<'a> {
             let status = context.run_command(command);
 
             if let Err(ref err) = status {
-                status!("{}", err);
+                let result = writeln!(
+                    context.log_file(),
+                    "[toby] {}",
+                    err
+                );
+
+                result.map_err(Error::Log)?;
             }
 
             status.map_err(Error::Command).or_else(|err| {

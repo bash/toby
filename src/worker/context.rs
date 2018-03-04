@@ -82,6 +82,10 @@ impl<'a> JobContext<'a> {
         })
     }
 
+    pub fn log_file(&mut self) -> &mut File {
+        &mut self.log_file
+    }
+
     pub fn run_command<S>(&mut self, command: &[S]) -> Result<(), CommandError>
     where
         S: Borrow<str> + AsRef<OsStr>,
@@ -104,11 +108,11 @@ impl<'a> JobContext<'a> {
         }
 
         let status = cmd.status()?;
-
+        
         if status.success() {
-            return Ok(());
-        }
-
-        Err(CommandError::ExitStatus(status))
+            Ok(())
+        } else {
+            Err(CommandError::ExitStatus(status))
+        }        
     }
 }
