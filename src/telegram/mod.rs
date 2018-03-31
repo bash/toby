@@ -7,6 +7,7 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use std::error;
 use std::fmt;
+use std::io;
 use std::result;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -14,6 +15,7 @@ pub type Result<T> = result::Result<T, Error>;
 #[derive(Debug)]
 pub enum Error {
     RequestError(reqwest::Error),
+    IoError(io::Error),
     TelegramError(i64, String),
     IncompleteTelegramError,
 }
@@ -24,10 +26,17 @@ impl From<reqwest::Error> for Error {
     }
 }
 
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Error {
+        Error::IoError(err)
+    }
+}
+
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::RequestError(ref err) => err.description(),
+            Error::IoError(ref err) => err.description(),
             Error::TelegramError(..) => "the telegram api returned an error",
             Error::IncompleteTelegramError => "the telegram api returned an incomplete error",
         }
@@ -36,6 +45,7 @@ impl error::Error for Error {
     fn cause(&self) -> Option<&error::Error> {
         match *self {
             Error::RequestError(ref err) => Some(err),
+            Error::IoError(ref err) => Some(err),
             _ => None,
         }
     }
@@ -45,6 +55,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Error::RequestError(ref err) => write!(f, "request error: {}", err),
+            Error::IoError(ref err) => write!(f, "io error: {}", err),
             Error::TelegramError(code, ref description) => {
                 write!(f, "telegram error ({}): {}", code, description)
             }
@@ -80,11 +91,16 @@ impl Api {
         name: &str,
         params: &T,
     ) -> Result<R> {
-        let resp: Response<R> = self.client
+        let resp = self.client
             .post(&format!("{}/{}", self.api_url, name))
             .form(&params)
-            .send()?
-            .json()?;
+            .send()?;
+
+        self.process_response(resp)
+    }
+
+    fn process_response<R: DeserializeOwned>(&self, mut resp: reqwest::Response) -> Result<R> {
+        let resp: Response<R> = resp.json()?;
 
         if !resp.ok {
             return match (resp.error_code, resp.description) {
@@ -108,6 +124,24 @@ impl Api {
 
     pub fn get_updates(&self, params: &GetUpdatesParams) -> Result<Vec<Update>> {
         self.call_method("getUpdates", params)
+    }
+
+    pub fn send_document(&self, params: SendDocumentParams) -> Result<Message> {
+        let SendDocumentParams { chat_id, document } = params;
+
+        let form = reqwest::multipart::Form::new().text("chat_id", chat_id);
+
+        let form = match document {
+            File::String(file) => form.text("document", file),
+            File::InputFile(path) => form.file("document", path)?,
+        };
+
+        let resp = self.client
+            .post(&format!("{}/sendDocument", self.api_url))
+            .multipart(form)
+            .send()?;
+
+        self.process_response(resp)
     }
 
     ///

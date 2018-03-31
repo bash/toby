@@ -22,6 +22,11 @@ pub struct SendMessageParams<'a, 'b> {
     pub reply_to_message_id: Option<i64>,
 }
 
+pub struct SendDocumentParams {
+    pub chat_id: String,
+    pub document: File,
+}
+
 #[derive(Serialize, Debug, Default)]
 pub struct SetWebhookParams<'a, 'b> {
     pub url: &'a str,
@@ -92,6 +97,13 @@ pub enum MessageEntityType {
     Pre,
     TextLink,
     TextMention,
+}
+
+pub enum File {
+    /// Either a URL or a file_id as string
+    String(String),
+    /// File name and Path to a file that will be uploaded
+    InputFile(String),
 }
 
 #[derive(Deserialize, Debug)]

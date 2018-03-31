@@ -125,6 +125,11 @@ token = "..."
 
 This field contains the bot token obtained from the [BotFather](https://t.me/BotFather).
 
+##### The `send_log` field (required)
+
+One of: `never`, `always`, `success`, `failure`.  
+When to send the job's log file after the job has completed.
+
 ### Tokens
 
 The tokens used to call the webhook are found in `/etc/toby/tokens.toml`.

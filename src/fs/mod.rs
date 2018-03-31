@@ -29,7 +29,7 @@ fn get_job_id_path(project_name: &str) -> PathBuf {
     path
 }
 
-fn job_log_path(project_name: &str, job_id: u64) -> PathBuf {
+pub fn job_log_path(project_name: &str, job_id: u64) -> PathBuf {
     let mut path = PathBuf::from(LOG_PATH);
 
     path.push("jobs");

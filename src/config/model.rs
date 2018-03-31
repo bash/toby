@@ -49,6 +49,17 @@ pub(crate) struct ListenConfig {
 #[serde(deny_unknown_fields)]
 pub(crate) struct TelegramConfig {
     pub(crate) token: String,
+    #[serde(default)]
+    pub(crate) send_log: SendLog,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[serde(rename_all = "lowercase")]
+pub(crate) enum SendLog {
+    Never,
+    Always,
+    Success,
+    Failure,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -104,6 +115,23 @@ impl Default for ListenConfig {
         ListenConfig {
             address: default_address(),
             port: default_port(),
+        }
+    }
+}
+
+impl Default for SendLog {
+    fn default() -> Self {
+        SendLog::Never
+    }
+}
+
+impl SendLog {
+    pub(crate) fn should_send(self, successful: bool) -> bool {
+        match self {
+            SendLog::Always => true,
+            SendLog::Success if successful => true,
+            SendLog::Failure if !successful => true,
+            _ => false,
         }
     }
 }

@@ -1,6 +1,7 @@
 use super::JobResult;
 use super::model::Job;
-use crate::config::Config;
+use crate::config::{Config, SendLog};
+use crate::fs::job_log_path;
 use crate::status;
 use crate::telegram;
 use reqwest;
@@ -9,6 +10,7 @@ use reqwest;
 struct TelegramHook {
     api: telegram::Api,
     chat_id: String,
+    send_log: SendLog,
 }
 
 #[derive(Debug)]
@@ -52,6 +54,7 @@ impl TelegramHook {
             .map(|(telegram, chat_id)| TelegramHook {
                 api: telegram::Api::new(reqwest::Client::new(), &telegram.token),
                 chat_id: chat_id.to_string(),
+                send_log: telegram.send_log,
             })
     }
 }
@@ -89,15 +92,28 @@ impl Hook for TelegramHook {
             ),
         };
 
-        let result = self.api.send_message(&telegram::SendMessageParams {
+        let send_result = self.api.send_message(&telegram::SendMessageParams {
             chat_id: &self.chat_id,
             text: &message,
             parse_mode: Some(telegram::ParseMode::Markdown),
             ..Default::default()
         });
 
-        if let Err(err) = result {
+        if let Err(err) = send_result {
             status!("Unable to send telegram message: {}", err);
+        }
+
+        if self.send_log.should_send(result.is_ok()) {
+            let path = job_log_path(project_name, job.id);
+
+            let send_result = self.api.send_document(telegram::SendDocumentParams {
+                chat_id: self.chat_id.clone(),
+                document: telegram::File::InputFile(path.to_string_lossy().into()),
+            });
+
+            if let Err(err) = send_result {
+                status!("Unable to send telegram message: {}", err);
+            }
         }
     }
 }
