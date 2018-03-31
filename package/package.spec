@@ -48,6 +48,8 @@ rm -rf %{_builddir}
 %files
 %defattr(-,root,root)
 %dir %{toby_confdir}
+%license license.txt
+%doc readme.md
 %config(noreplace) %{toby_confdir}/toby.toml
 %config(noreplace) %{toby_confdir}/tokens.toml
 %{bindir}/toby

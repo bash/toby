@@ -2,7 +2,8 @@
 
 tar -zcf toby.tar.gz \
     ./conf ./units ./src \
-    Cargo.toml Cargo.lock configure build.rs
+    Cargo.toml Cargo.lock configure build.rs \
+    license.txt readme.md
 
 mkdir -p $HOME/rpmbuild/SOURCES
 mv toby.tar.gz $HOME/rpmbuild/SOURCES
