@@ -125,9 +125,9 @@ token = "..."
 
 This field contains the bot token obtained from the [BotFather](https://t.me/BotFather).
 
-##### The `send_log` field (required)
+##### The `send_log` field
 
-One of: `never`, `always`, `success`, `failure`.  
+One of: `never`, `always`, `success`, `failure`. Defaults to `never`.  
 When to send the job's log file after the job has completed.
 
 ### Tokens
