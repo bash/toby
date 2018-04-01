@@ -5,6 +5,12 @@ TOBY_LOG_PATH=/usr/local/var/log/toby
 TOBY_RUNTIME_PATH=/usr/local/var/lib/toby
 TOBY_VERSION=0.1.0
 
+if [ -f preconfigured ]
+then
+    echo "Loading defaults from pre-configuration"
+    source preconfigured
+fi
+
 REMAINDER=$(($#%2))
 
 if [ $REMAINDER -ne 0 ]
