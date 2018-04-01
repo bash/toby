@@ -1,5 +1,5 @@
 #![feature(plugin, decl_macro, option_filter, slice_concat_ext, custom_derive, use_extern_macros,
-           inclusive_range_syntax, crate_in_paths, match_default_bindings)]
+           crate_in_paths, match_default_bindings)]
 #![plugin(rocket_codegen)]
 #![deny(dead_code)]
 
