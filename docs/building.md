@@ -17,7 +17,8 @@ Each [Release on GitHub](https://github.com/bash/toby/releases) comes with a tar
 
 ```
 mkdir toby-build
-cd toby-build 
+cd toby-build
+rustup override set nightly
 
 wget URL_FROM_GITHUB_RELEASES_TAB
 tar -xvf toby-*.tar.gz
