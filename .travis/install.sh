@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 if [ -z "${OPENSSL_VERSION}" ]; then
   echo "No custom openssl version defined. Exiting."
   exit
@@ -11,7 +13,7 @@ OPENSSL_DIR=$HOME/openssl/$OPENSSL_VERSION
 
 if [ ! -f "$OPENSSL_DIR/bin/openssl" ]
 then
-  curl -O https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
+  wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
   tar -zxf openssl-$OPENSSL_VERSION.tar.gz
   cd openssl-$OPENSSL_VERSION
   ./config shared no-asm no-ssl2 no-ssl3 -fPIC --prefix="$OPENSSL_DIR"
