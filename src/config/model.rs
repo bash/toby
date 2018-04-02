@@ -13,7 +13,6 @@ pub(crate) struct Config {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Project {
-    pub(crate) repository: Option<String>,
     pub(crate) scripts: Vec<Script>,
     #[serde(default)]
     pub(crate) environment: HashMap<String, String>,
