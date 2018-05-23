@@ -47,5 +47,24 @@ The build produces two binaries: `toby` and `tobyd` which are both found in `./t
 Assuming that the installation should be in `/usr/local/`, we can use `./scripts/install.sh` to move the files to the right place:
 
 ```
-TARGET=release ./scripts/install.sh
+TOBY_TARGET=release ./scripts/install.sh
+```
+
+## Sytemd Unit
+
+The systemd unit must be created manually (preferrably under `/usr/local/lib/systemd/system/toby.service`):
+
+```
+[Unit]
+Description=Toby the friendly server bot
+After=network.target
+Requires=network.target
+
+[Service]
+Restart=always
+ExecStart=/usr/local/bin/tobyd
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
 ```
