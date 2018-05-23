@@ -104,6 +104,8 @@ This section holds a list of scripts, which are executed in order.
 The command field specifies a command to execute.  
 It must be given as an array where each argument is one element in the array.
 
+Custom scripts can be placed in `/etc/toby/scripts.d/`.
+
 ```toml
 [[scripts]]
 command = ["systemctl", "restart", "dreams"]

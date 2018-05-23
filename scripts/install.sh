@@ -15,4 +15,5 @@ mkdir -p $TOBY_PREFIX/usr/local/bin/
 cp ./target/$TOBY_TARGET/toby ./target/$TOBY_TARGET/tobyd $TOBY_PREFIX/usr/local/bin/
 
 mkdir -p $TOBY_PREFIX/usr/local/etc/toby/conf.d
+mkdir -p $TOBY_PREFIX/usr/local/etc/toby/scripts.d
 cp ./conf/*.toml $TOBY_PREFIX/usr/local/etc/toby/

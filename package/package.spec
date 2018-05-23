@@ -41,6 +41,7 @@ cp %{_builddir}/target/release/tobyd %{buildroot}%{bindir}/
 %post
 systemctl --no-reload preset toby.service
 mkdir -p %{toby_confdir}/conf.d
+mkdir -p %{toby_confdir}/scripts.d
 
 %clean
 rm -rf %{_builddir}
