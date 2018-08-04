@@ -1,0 +1,7 @@
+[package]
+name = "toby-core"
+version = "0.1.0"
+authors = ["Ruben Schmidmeister <ruben.schmidmeister@icloud.com>"]
+publish = false
+
+[dependencies]

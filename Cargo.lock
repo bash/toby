@@ -983,6 +983,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "toby-cli"
+version = "0.1.0"
+
+[[package]]
+name = "toby-core"
+version = "0.1.0"
+
+[[package]]
+name = "toby-httpd"
+version = "0.1.0"
+
+[[package]]
+name = "toby-workerd"
+version = "0.1.0"
+
+[[package]]
 name = "tokio"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"

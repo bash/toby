@@ -3,7 +3,7 @@ use std::io::{self, Read, Write};
 
 fn main() {
     let mut buffer = Vec::new();
-    let mut file = match File::open("Build.txt") {
+    let mut file = match File::open("../Build.txt") {
         Ok(file) => file,
         Err(_) => {
             panic!(
