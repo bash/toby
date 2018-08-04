@@ -1,6 +1,6 @@
 # Configuration
 
-Configuration files are written in [TOML (Tom's Obvious, Minimal Language)](https://github.com/toml-lang/toml) and hence use the file extension `toml`.
+Configuration files are written in [TOML (Tom's Obvious, Minimal Language)](https://github.com/toml-lang/toml) and hence use the file extension `toml`. 
 
 ## Main config
 
@@ -25,7 +25,7 @@ The port field specifies the port on which the http server will listen.
 ### The `[telegram]` section
 
 This section configures the integration with [Telegram](https://www.telegram.org).  
-[There's a guide for setting up Telegram with Toby](telegram.md).
+[There's a guide for setting up Telegram with Toby](./telegram.md).
 
 ```toml
 [telegram]

@@ -34,7 +34,7 @@ The various paths toby uses (config, log) can be configured using the `./configu
             --runtime-path /usr/local/var/lib/toby
 ```
 
-Finally, we can compile toby.
+To compile, run:
 
 ```
 cargo build --release
@@ -50,9 +50,10 @@ Assuming that the installation should be in `/usr/local/`, we can use `./scripts
 TOBY_TARGET=release ./scripts/install.sh
 ```
 
-## Sytemd Unit
+## Systemd Unit
 
-The systemd unit must be created manually (preferrably under `/usr/local/lib/systemd/system/toby.service`):
+Here is an exemplary systemd unit for toby.
+It should be placed in `/usr/local/lib/systemd/system/toby.service`.
 
 ```
 [Unit]
