@@ -12,20 +12,14 @@ Toby listens for incoming webhooks and can run pre-defined scripts for different
 ## Projects Using Toby
 
 - [bash/server-config](https://github.com/bash/server-config/blob/master/.travis.yml)
-- [MyelinAi/website](https://github.com/MyelinAI/website/blob/master/.travis.yml)
+- [MyelinAI/website](https://github.com/MyelinAI/website/blob/master/.travis.yml)
 - ...
 - [Add your project](https://github.com/bash/toby/edit/master/readme.md)
 
-## Installation
+## Documentation
 
-There are RPM packages available from the [Releases](https://github.com/bash/toby/releases) tab on GitHub.
-
-**Disclaimer:** These RPM packages only work with Fedora 27.
-
-```sh
-wget <URL_TO_RPM>
-rpm -Uvh toby-<VERSION>-1.x86_64.rpm
-```
-
-
-
+- [Getting Started](./docs/getting-started.md)
+- [Configuration Reference](./docs/config.md)
+- [Jobs](./docs/jobs.md)
+- [Telegram Integration](./docs/telegram.md)
+- [HTTP API](./docs/api.md)
