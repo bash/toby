@@ -3,6 +3,5 @@ members = [
   "toby-cli",
   "toby-core",
   "toby-httpd",
-  "toby-legacy",
   "toby-workerd",
 ]
