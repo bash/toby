@@ -121,7 +121,7 @@ where
         let mut writer = BufWriter::new(&mut self.inner);
         let encoded = serialize(value)?;
 
-        writer.write(&encoded)?;
+        writer.write_all(&encoded)?;
 
         Ok(())
     }
