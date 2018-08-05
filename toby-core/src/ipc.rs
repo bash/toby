@@ -47,10 +47,10 @@ where
 }
 
 fn socket_path(context: &Context) -> io::Result<PathBuf> {
-    let path = PathBuf::from(context.runtime_path());
+    let path = context.runtime_path();
 
     if !path.exists() {
-        DirBuilder::new().recursive(true).create(&path)?;
+        DirBuilder::new().recursive(true).create(path)?;
     }
 
     Ok(path!(path, SOCKET_FILE_NAME))
