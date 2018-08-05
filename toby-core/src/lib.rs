@@ -8,4 +8,4 @@ extern crate serde_derive;
 
 pub mod constants;
 pub mod ipc;
-pub mod model;
+pub mod job;

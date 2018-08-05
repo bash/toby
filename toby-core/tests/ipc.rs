@@ -3,7 +3,7 @@ extern crate toby_core;
 use std::sync::mpsc::channel;
 use std::thread;
 use toby_core::ipc::{IpcClient, IpcMessage, IpcServer};
-use toby_core::model::job::JobTrigger;
+use toby_core::job::JobTrigger;
 
 #[test]
 fn test_ipc() {

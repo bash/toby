@@ -1,6 +1,6 @@
 use bincode::{self, deserialize, serialize};
 use crate::constants::RUNTIME_PATH;
-use crate::model::job::JobTrigger;
+use crate::job::JobTrigger;
 use serde::{Deserialize, Serialize};
 use std::error;
 use std::fmt;
