@@ -30,7 +30,7 @@ Add the newly obtained token to your toby config in `/etc/toby/toby.toml`:
 
 The `[telegram]` section should already exist in the config file and is simply commented out. Remove the commenting and change the token.
 
-```
+```toml
 # The bot can notify you about success/failure of jobs through telegram.
 [telegram]
 token = "YOUR BOT TOKEN GOES HERE"
