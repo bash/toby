@@ -28,11 +28,9 @@ pub enum IpcMessage {
 }
 
 #[derive(Debug)]
-pub struct IpcServerImpl<T>
-where
-    T: for<'de> Deserialize<'de>,
-{
+pub struct IpcServerImpl<T> {
     inner: UnixListener,
+    path: PathBuf,
     phantom: PhantomData<T>,
 }
 
@@ -98,8 +96,11 @@ where
             remove_file(&path)?;
         }
 
+        let inner = UnixListener::bind(&path)?;
+
         Ok(Self {
-            inner: UnixListener::bind(path)?,
+            path,
+            inner,
             phantom: PhantomData,
         })
     }
@@ -113,6 +114,12 @@ where
         reader.read_to_end(&mut buf)?;
 
         Ok(deserialize(&buf)?)
+    }
+}
+
+impl<T> Drop for IpcServerImpl<T> {
+    fn drop(&mut self) {
+        let _ = remove_file(&self.path);
     }
 }
 
