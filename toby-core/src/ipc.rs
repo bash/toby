@@ -1,5 +1,6 @@
 use bincode::{self, deserialize, serialize};
 use crate::constants::RUNTIME_PATH;
+use crate::model::job::JobTrigger;
 use serde::{Deserialize, Serialize};
 use std::error;
 use std::fmt;
@@ -9,14 +10,25 @@ use std::marker::PhantomData;
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
 
+pub type IpcServer = IpcServerImpl<IpcMessage>;
+pub type IpcClient = IpcClientImpl<IpcMessage>;
+
 #[derive(Debug)]
 pub enum Error {
     Io(io::Error),
     Bincode(bincode::Error),
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub enum IpcMessage {
+    Job {
+        project: String,
+        trigger: JobTrigger,
+    },
+}
+
 #[derive(Debug)]
-pub struct IpcServer<T>
+pub struct IpcServerImpl<T>
 where
     T: for<'de> Deserialize<'de>,
 {
@@ -25,7 +37,7 @@ where
 }
 
 #[derive(Debug)]
-pub struct IpcClient<T>
+pub struct IpcClientImpl<T>
 where
     T: Serialize,
 {
@@ -75,7 +87,7 @@ impl From<bincode::Error> for Error {
     }
 }
 
-impl<T> IpcServer<T>
+impl<T> IpcServerImpl<T>
 where
     T: for<'de> Deserialize<'de>,
 {
@@ -104,7 +116,7 @@ where
     }
 }
 
-impl<T> IpcClient<T>
+impl<T> IpcClientImpl<T>
 where
     T: Serialize,
 {

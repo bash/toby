@@ -3,7 +3,7 @@ extern crate toby_core;
 use toby_core::ipc::IpcServer;
 
 fn main() {
-    let mut server: IpcServer<String> = IpcServer::bind().unwrap();
+    let mut server = IpcServer::bind().unwrap();
 
     loop {
         let msg = server.receive().unwrap();
