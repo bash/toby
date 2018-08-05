@@ -1,5 +1,6 @@
 use bincode::{self, deserialize, serialize};
 use crate::job::JobTrigger;
+use crate::path;
 use crate::Context;
 use serde::{Deserialize, Serialize};
 use std::error;
@@ -46,15 +47,13 @@ where
 }
 
 fn socket_path(context: &Context) -> io::Result<PathBuf> {
-    let mut path = PathBuf::from(context.runtime_path());
+    let path = PathBuf::from(context.runtime_path());
 
     if !path.exists() {
         DirBuilder::new().recursive(true).create(&path)?;
     }
 
-    path.push(SOCKET_FILE_NAME);
-
-    Ok(path)
+    Ok(path!(path, SOCKET_FILE_NAME))
 }
 
 impl fmt::Display for Error {

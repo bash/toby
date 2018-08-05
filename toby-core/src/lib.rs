@@ -1,4 +1,4 @@
-#![feature(rust_2018_preview)]
+#![feature(rust_2018_preview, decl_macro)]
 #![warn(rust_2018_idioms)]
 
 #[macro_use]
@@ -14,3 +14,16 @@ pub mod ipc;
 pub mod job;
 
 pub use self::context::Context;
+
+pub macro path {
+    ($x:expr) => {{
+        std::path::PathBuf::from($x)
+    }},
+    ($($y:expr),+) => {{
+        let mut path = std::path::PathBuf::new();
+        $(
+            path.push($y);
+        )*
+        path
+    }}
+}
