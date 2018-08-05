@@ -29,8 +29,7 @@ fn test_ipc() {
             .send(&IpcMessage::Job {
                 trigger: JobTrigger::Cli,
                 project: "foo".into(),
-            })
-            .unwrap();
+            }).unwrap();
     });
 
     let message = rx.recv().unwrap();

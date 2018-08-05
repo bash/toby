@@ -10,6 +10,5 @@ fn main() {
         .send(&IpcMessage::Job {
             project: "foo".into(),
             trigger: JobTrigger::Cli,
-        })
-        .unwrap();
+        }).unwrap();
 }
