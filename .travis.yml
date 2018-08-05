@@ -24,12 +24,16 @@ addons:
 
 install:
   - ./.travis/install.sh
+  - rustup component add rustfmt-preview
+  - rustup component add clippy-preview
 
 before_script:
   - ./configure
 
 script:
   - cargo check --verbose
+  - cargo clippy --verbose
+  - cargo fmt -- --check
 
 before_deploy:
   - ./package/package.sh
