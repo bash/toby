@@ -58,7 +58,7 @@ fn socket_path(context: &Context) -> io::Result<PathBuf> {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::Io(ref err) => write!(f, "{}", err),
             Error::Bincode(ref err) => write!(f, "{}", err),

@@ -1,4 +1,5 @@
-extern crate toby_core;
+#![feature(rust_2018_preview)]
+#![warn(rust_2018_idioms)]
 
 use toby_core::ipc::IpcServer;
 use toby_core::Context;

@@ -1,9 +1,8 @@
-#![feature(crate_in_paths)]
+#![feature(rust_2018_preview)]
+#![warn(rust_2018_idioms)]
 
-extern crate bincode;
 #[macro_use]
 extern crate lazy_static;
-extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
@@ -14,4 +13,4 @@ mod context;
 pub mod ipc;
 pub mod job;
 
-pub use context::Context;
+pub use self::context::Context;

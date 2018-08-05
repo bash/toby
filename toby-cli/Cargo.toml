@@ -1,8 +1,11 @@
+cargo-features = ["edition"]
+
 [package]
 name = "toby"
 version = "0.1.0"
 authors = ["Ruben Schmidmeister <ruben.schmidmeister@icloud.com>"]
 publish = false
+edition = "2018"
 
 [dependencies]
 toby-core = { path = "../toby-core" }

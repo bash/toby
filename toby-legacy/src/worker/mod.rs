@@ -1,6 +1,6 @@
-mod model;
 mod context;
 mod hook;
+mod model;
 
 use self::context::{CommandError, JobContext};
 pub(crate) use self::model::*;

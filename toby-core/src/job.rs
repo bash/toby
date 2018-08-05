@@ -48,7 +48,7 @@ impl From<JobTrigger> for ArchivedJobTrigger {
 }
 
 impl fmt::Display for JobTrigger {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             JobTrigger::Webhook { ref token } => write!(f, "webhook ({})", token),
             JobTrigger::Cli => write!(f, "cli"),
