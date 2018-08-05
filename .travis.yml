@@ -31,8 +31,8 @@ before_script:
   - ./configure
 
 script:
-  - cargo check --verbose
   - cargo clippy --verbose
+  - cargo test --verbose
   - cargo fmt -- --check
 
 before_deploy:
