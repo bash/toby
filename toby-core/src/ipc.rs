@@ -4,11 +4,13 @@ use crate::model::job::JobTrigger;
 use serde::{Deserialize, Serialize};
 use std::error;
 use std::fmt;
-use std::fs::{create_dir, remove_file};
+use std::fs::{remove_file, DirBuilder};
 use std::io::{self, BufReader, BufWriter, Read, Write};
 use std::marker::PhantomData;
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
+
+const SOCKET_FILE_NAME: &str = "toby-workerd.sock";
 
 pub type IpcServer = IpcServerImpl<IpcMessage>;
 pub type IpcClient = IpcClientImpl<IpcMessage>;
@@ -47,10 +49,10 @@ fn socket_path() -> io::Result<PathBuf> {
     let mut path = PathBuf::from(RUNTIME_PATH);
 
     if !path.exists() {
-        create_dir(&path)?;
+        DirBuilder::new().recursive(true).create(&path)?;
     }
 
-    path.push("tobyd.sock");
+    path.push(SOCKET_FILE_NAME);
 
     Ok(path)
 }
