@@ -19,7 +19,7 @@ pub enum Error {
     Bincode(bincode::Error),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub enum IpcMessage {
     Job {
         project: String,
@@ -52,7 +52,7 @@ fn socket_path() -> io::Result<PathBuf> {
         create_dir(&path)?;
     }
 
-    path.push("toby.sock");
+    path.push("tobyd.sock");
 
     Ok(path)
 }

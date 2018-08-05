@@ -16,7 +16,7 @@ pub struct ArchivedJob {
   pub trigger: ArchivedJobTrigger,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub enum JobTrigger {
   Webhook { token: String },
   Cli,
