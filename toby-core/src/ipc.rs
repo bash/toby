@@ -1,6 +1,6 @@
 use bincode::{self, deserialize, serialize};
-use crate::constants::RUNTIME_PATH;
 use crate::job::JobTrigger;
+use crate::Context;
 use serde::{Deserialize, Serialize};
 use std::error;
 use std::fmt;
@@ -45,8 +45,8 @@ where
     phantom: PhantomData<T>,
 }
 
-fn socket_path() -> io::Result<PathBuf> {
-    let mut path = PathBuf::from(RUNTIME_PATH);
+fn socket_path(context: &Context) -> io::Result<PathBuf> {
+    let mut path = PathBuf::from(context.runtime_path());
 
     if !path.exists() {
         DirBuilder::new().recursive(true).create(&path)?;
@@ -91,8 +91,8 @@ impl<T> IpcServerImpl<T>
 where
     T: for<'de> Deserialize<'de>,
 {
-    pub fn bind() -> io::Result<Self> {
-        let path = socket_path()?;
+    pub fn bind(context: &Context) -> io::Result<Self> {
+        let path = socket_path(context)?;
 
         if path.exists() {
             remove_file(&path)?;
@@ -129,8 +129,8 @@ impl<T> IpcClientImpl<T>
 where
     T: Serialize,
 {
-    pub fn connect() -> io::Result<Self> {
-        let path = socket_path()?;
+    pub fn connect(context: &Context) -> io::Result<Self> {
+        let path = socket_path(context)?;
 
         Ok(Self {
             inner: UnixStream::connect(path)?,
