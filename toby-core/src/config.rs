@@ -217,4 +217,25 @@ mod test {
         assert_eq!(1234, config.port());
         assert_eq!(&"172.16.16.16".parse::<IpAddr>().unwrap(), config.address());
     }
+
+    #[test]
+    fn test_tls_config() {
+        let config = Config {
+            main: MainConfig {
+                tls: Some(TlsConfig {
+                    certificate: "cert.pem".into(),
+                    certificate_key: "key.pem".into(),
+                }),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        assert_eq!(Some("cert.pem"), config.tls().map(|tls| tls.certificate()));
+
+        assert_eq!(
+            Some("key.pem"),
+            config.tls().map(|tls| tls.certificate_key())
+        );
+    }
 }
