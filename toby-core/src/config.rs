@@ -63,7 +63,7 @@ pub enum SendLog {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
-struct TlsConfig {
+pub struct TlsConfig {
     certificate: String,
     certificate_key: String,
 }
@@ -97,14 +97,18 @@ impl Config {
     pub fn address(&self) -> &IpAddr {
         &self.main.listen.address
     }
+
+    pub fn tls(&self) -> Option<&TlsConfig> {
+        self.main.tls.as_ref()
+    }
 }
 
 impl TlsConfig {
-    fn certificate(&self) -> &str {
+    pub fn certificate(&self) -> &str {
         &self.certificate
     }
 
-    fn certificate_key(&self) -> &str {
+    pub fn certificate_key(&self) -> &str {
         &self.certificate_key
     }
 }
