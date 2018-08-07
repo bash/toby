@@ -1,6 +1,3 @@
-extern crate tempdir;
-extern crate toby_core;
-
 mod context;
 
 use self::context::TempContext;
