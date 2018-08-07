@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
+use std::net::{IpAddr, Ipv4Addr};
 
 const DEFAULT_PORT: u16 = 8629;
-const DEFAULT_ADDRESS: &str = "0.0.0.0";
 
 #[derive(Debug, Clone, Default)]
 pub struct Config {
@@ -41,7 +41,7 @@ struct ListenConfig {
     #[serde(default = "default_port")]
     port: u16,
     #[serde(default = "default_address")]
-    address: String,
+    address: IpAddr,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -81,8 +81,8 @@ fn default_port() -> u16 {
 }
 
 #[inline]
-fn default_address() -> String {
-    DEFAULT_ADDRESS.into()
+fn default_address() -> IpAddr {
+    IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))
 }
 
 impl Config {
