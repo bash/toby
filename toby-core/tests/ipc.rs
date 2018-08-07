@@ -1,28 +1,21 @@
 extern crate tempdir;
 extern crate toby_core;
 
+mod context;
+
+use self::context::TempContext;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::thread;
-use tempdir::TempDir;
 use toby_core::ipc::{IpcClient, IpcMessage, IpcServer};
 use toby_core::job::JobTrigger;
-use toby_core::Context;
 
 #[test]
 fn test_ipc() {
     let (tx, rx) = channel();
     let (ready_tx, ready_rx) = channel();
 
-    let config_dir = TempDir::new("toby-ipc").unwrap();
-    let log_dir = TempDir::new("toby-ipc").unwrap();
-    let runtime_dir = TempDir::new("toby-ipc").unwrap();
-
-    let context = Arc::new(Context::new(
-        config_dir.path().to_owned(),
-        log_dir.path().to_owned(),
-        runtime_dir.path().to_owned(),
-    ));
+    let context = Arc::new(TempContext::create().unwrap());
 
     {
         let context = context.clone();
