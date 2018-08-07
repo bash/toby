@@ -89,6 +89,14 @@ impl Config {
     pub fn get_token(&self, token: &str) -> Option<&Token> {
         self.tokens.get(token)
     }
+
+    pub fn port(&self) -> u16 {
+        self.main.listen.port
+    }
+
+    pub fn address(&self) -> &IpAddr {
+        &self.main.listen.address
+    }
 }
 
 impl TlsConfig {
@@ -140,6 +148,7 @@ impl SendLog {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::net::IpAddr;
 
     #[test]
     fn test_should_send_log() {
@@ -190,5 +199,22 @@ mod test {
             }),
             config.get_token("travis")
         )
+    }
+
+    #[test]
+    fn test_listen_config() {
+        let config = Config {
+            main: MainConfig {
+                listen: ListenConfig {
+                    port: 1234,
+                    address: "172.16.16.16".parse().unwrap(),
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        assert_eq!(1234, config.port());
+        assert_eq!(&"172.16.16.16".parse::<IpAddr>().unwrap(), config.address());
     }
 }
