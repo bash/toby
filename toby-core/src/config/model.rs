@@ -1,67 +1,65 @@
-use crate::{path, Context};
-use serde::Deserialize;
+use serde::{self, Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::fmt;
-use std::fs::File;
-use std::io::{self, BufReader, Read};
 use std::net::{IpAddr, Ipv4Addr};
-use std::path::{Path, PathBuf};
-use toml;
 
-const CONFIG_FILE_NAME: &str = "toby.toml";
-const TOKENS_FILE_NAME: &str = "tokens.toml";
 const DEFAULT_PORT: u16 = 8629;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
+pub struct Tokens(pub(super) HashMap<String, Token>);
+
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
+pub struct Projects(pub(super) HashMap<String, Project>);
+
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub struct Config {
-    main: MainConfig,
-    tokens: HashMap<String, Token>,
-    projects: HashMap<String, Project>,
+    pub(super) main: MainConfig,
+    pub(super) tokens: Tokens,
+    pub(super) projects: Projects,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
-struct Project {
-    scripts: Vec<Script>,
+pub struct Project {
+    pub(super) scripts: Vec<Script>,
     #[serde(default)]
-    environment: HashMap<String, String>,
+    pub(super) environment: HashMap<String, String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
-struct Script {
-    command: Vec<String>,
+pub(super) struct Script {
+    pub(super) command: Vec<String>,
     #[serde(default)]
-    allow_failure: bool,
+    pub(super) allow_failure: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
-struct MainConfig {
+pub struct MainConfig {
     #[serde(default)]
-    listen: ListenConfig,
-    telegram: Option<TelegramConfig>,
-    tls: Option<TlsConfig>,
+    pub(super) listen: ListenConfig,
+    pub(super) telegram: Option<TelegramConfig>,
+    pub(super) tls: Option<TlsConfig>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
-struct ListenConfig {
+pub(super) struct ListenConfig {
     #[serde(default = "default_port")]
-    port: u16,
+    pub(super) port: u16,
     #[serde(default = "default_address")]
-    address: IpAddr,
+    pub(super) address: IpAddr,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
-struct TelegramConfig {
-    token: String,
+pub(super) struct TelegramConfig {
+    pub(super) token: String,
     #[serde(default)]
-    send_log: SendLog,
+    pub(super) send_log: SendLog,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum SendLog {
     Never,
@@ -70,26 +68,18 @@ pub enum SendLog {
     Failure,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct TlsConfig {
-    certificate: String,
-    certificate_key: String,
+    pub(super) certificate: String,
+    pub(super) certificate_key: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Token {
-    secret: String,
-    access: HashSet<String>,
-}
-
-#[derive(Debug)]
-pub enum ConfigError {
-    NotFound(PathBuf),
-    ListError,
-    ReadError(PathBuf, io::Error),
-    ParseError(PathBuf, toml::de::Error),
+    pub(super) secret: String,
+    pub(super) access: HashSet<String>,
 }
 
 #[inline]
@@ -102,46 +92,27 @@ fn default_address() -> IpAddr {
     IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))
 }
 
-fn read_file(path: &Path) -> io::Result<String> {
-    let mut reader = BufReader::new(File::open(path)?);
-    let mut contents = String::new();
-
-    reader.read_to_string(&mut contents)?;
-
-    Ok(contents)
+impl Serialize for Tokens {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.0.serialize(serializer)
+    }
 }
 
-fn read_config_file<T>(path: PathBuf) -> Result<T, ConfigError>
-where
-    for<'de> T: Deserialize<'de>,
-{
-    let contents = match read_file(&path) {
-        Ok(contents) => contents,
-        Err(err) => return Err(ConfigError::ReadError(path, err)),
-    };
-
-    let config = match toml::from_str(&contents) {
-        Ok(config) => config,
-        Err(err) => return Err(ConfigError::ParseError(path, err)),
-    };
-
-    Ok(config)
+impl<'de> Deserialize<'de> for Tokens {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(Tokens(Deserialize::deserialize(deserializer)?))
+    }
 }
 
 impl Config {
-    pub fn load(context: &Context) -> Result<Self, ConfigError> {
-        let main = read_config_file(path!(context.config_path(), CONFIG_FILE_NAME))?;
-        let tokens = read_config_file(path!(context.config_path(), TOKENS_FILE_NAME))?;
-
-        Ok(Self {
-            main,
-            tokens,
-            projects: HashMap::new(),
-        })
-    }
-
     pub fn get_token(&self, token: &str) -> Option<&Token> {
-        self.tokens.get(token)
+        self.tokens.0.get(token)
     }
 
     pub fn port(&self) -> u16 {
@@ -203,29 +174,6 @@ impl SendLog {
     }
 }
 
-impl fmt::Display for ConfigError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
-            ConfigError::ListError => write!(f, "Unable to list project config files"),
-            ConfigError::ReadError(ref path, ref err) => write!(
-                f,
-                "Unable to read config file {}:\n{}",
-                path.to_string_lossy(),
-                err,
-            ),
-            ConfigError::ParseError(ref path, ref err) => write!(
-                f,
-                "Error parsing config file {}:\n{}",
-                path.to_string_lossy(),
-                err
-            ),
-            ConfigError::NotFound(ref path) => {
-                write!(f, "Config file {} does not exist", path.to_string_lossy())
-            }
-        }
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -269,7 +217,7 @@ mod test {
         );
 
         let config = Config {
-            tokens: tokens,
+            tokens: Tokens(tokens),
             ..Default::default()
         };
 
