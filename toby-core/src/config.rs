@@ -1,6 +1,15 @@
+use crate::{path, Context};
+use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
+use std::fmt;
+use std::fs::File;
+use std::io::{self, BufReader, Read};
 use std::net::{IpAddr, Ipv4Addr};
+use std::path::{Path, PathBuf};
+use toml;
 
+const CONFIG_FILE_NAME: &str = "toby.toml";
+const TOKENS_FILE_NAME: &str = "tokens.toml";
 const DEFAULT_PORT: u16 = 8629;
 
 #[derive(Debug, Clone, Default)]
@@ -75,6 +84,14 @@ pub struct Token {
     access: HashSet<String>,
 }
 
+#[derive(Debug)]
+pub enum ConfigError {
+    NotFound(PathBuf),
+    ListError,
+    ReadError(PathBuf, io::Error),
+    ParseError(PathBuf, toml::de::Error),
+}
+
 #[inline]
 fn default_port() -> u16 {
     DEFAULT_PORT
@@ -85,7 +102,44 @@ fn default_address() -> IpAddr {
     IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))
 }
 
+fn read_file(path: &Path) -> io::Result<String> {
+    let mut reader = BufReader::new(File::open(path)?);
+    let mut contents = String::new();
+
+    reader.read_to_string(&mut contents)?;
+
+    Ok(contents)
+}
+
+fn read_config_file<T>(path: PathBuf) -> Result<T, ConfigError>
+where
+    for<'de> T: Deserialize<'de>,
+{
+    let contents = match read_file(&path) {
+        Ok(contents) => contents,
+        Err(err) => return Err(ConfigError::ReadError(path, err)),
+    };
+
+    let config = match toml::from_str(&contents) {
+        Ok(config) => config,
+        Err(err) => return Err(ConfigError::ParseError(path, err)),
+    };
+
+    Ok(config)
+}
+
 impl Config {
+    pub fn load(context: &Context) -> Result<Self, ConfigError> {
+        let main = read_config_file(path!(context.config_path(), CONFIG_FILE_NAME))?;
+        let tokens = read_config_file(path!(context.config_path(), TOKENS_FILE_NAME))?;
+
+        Ok(Self {
+            main,
+            tokens,
+            projects: HashMap::new(),
+        })
+    }
+
     pub fn get_token(&self, token: &str) -> Option<&Token> {
         self.tokens.get(token)
     }
@@ -145,6 +199,29 @@ impl SendLog {
             SendLog::Success if successful => true,
             SendLog::Failure if !successful => true,
             _ => false,
+        }
+    }
+}
+
+impl fmt::Display for ConfigError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            ConfigError::ListError => write!(f, "Unable to list project config files"),
+            ConfigError::ReadError(ref path, ref err) => write!(
+                f,
+                "Unable to read config file {}:\n{}",
+                path.to_string_lossy(),
+                err,
+            ),
+            ConfigError::ParseError(ref path, ref err) => write!(
+                f,
+                "Error parsing config file {}:\n{}",
+                path.to_string_lossy(),
+                err
+            ),
+            ConfigError::NotFound(ref path) => {
+                write!(f, "Config file {} does not exist", path.to_string_lossy())
+            }
         }
     }
 }

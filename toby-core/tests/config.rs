@@ -3,6 +3,7 @@
 use self::context::TempContext;
 use std::fs::{create_dir, OpenOptions};
 use std::io::Write;
+use std::net::{IpAddr, Ipv4Addr};
 use toby_core::{config::Config, path};
 
 mod context;
@@ -46,7 +47,18 @@ command = ["systemctl", "restart", "dreams"]
 allow_failure = true"#
     );
 
-    let config = Config::load(&context);
+    let config = Config::load(&context).unwrap();
 
-    assert!(config.is_ok());
+    assert_eq!(
+        &IpAddr::V4(Ipv4Addr::new(172, 16, 16, 16)),
+        config.address()
+    );
+
+    assert_eq!(1234, config.port());
+
+    assert_eq!(
+        "much_secret_wow",
+        config.get_token("robot").unwrap().secret()
+    );
+    assert!(config.get_token("robot").unwrap().can_access("dreams"));
 }
