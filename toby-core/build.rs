@@ -1,8 +1,7 @@
 use std::fs::File;
-use std::io::{self, Read, Write};
+use std::io;
 
 fn main() {
-    let mut buffer = Vec::new();
     let mut file = match File::open("../Build.txt") {
         Ok(file) => file,
         Err(_) => {
@@ -17,9 +16,7 @@ Did you forget to run `./configure`?
         }
     };
 
-    file.read_to_end(&mut buffer).unwrap();
-
-    io::stdout().write_all(&buffer).unwrap();
+    io::copy(&mut file, &mut io::stdout()).unwrap();
 
     println!("cargo:rerun-if-changed=Build.txt")
 }
