@@ -2,19 +2,14 @@ use bincode::{self, deserialize, serialize};
 use crate::job::JobTrigger;
 use crate::path;
 use crate::Context;
-use serde::{Deserialize, Serialize};
 use std::error;
 use std::fmt;
 use std::fs::{remove_file, DirBuilder};
 use std::io::{self, BufReader, BufWriter, Read, Write};
-use std::marker::PhantomData;
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
 
 const SOCKET_FILE_NAME: &str = "toby-workerd.sock";
-
-pub type IpcServer = IpcServerImpl<IpcMessage>;
-pub type IpcClient = IpcClientImpl<IpcMessage>;
 
 #[derive(Debug)]
 pub enum Error {
@@ -31,19 +26,14 @@ pub enum IpcMessage {
 }
 
 #[derive(Debug)]
-pub struct IpcServerImpl<T> {
+pub struct IpcServer {
     inner: UnixListener,
     path: PathBuf,
-    phantom: PhantomData<T>,
 }
 
 #[derive(Debug)]
-pub struct IpcClientImpl<T>
-where
-    T: Serialize,
-{
+pub struct IpcClient {
     inner: UnixStream,
-    phantom: PhantomData<T>,
 }
 
 fn socket_path(context: &Context) -> io::Result<PathBuf> {
@@ -86,10 +76,7 @@ impl From<bincode::Error> for Error {
     }
 }
 
-impl<T> IpcServerImpl<T>
-where
-    T: for<'de> Deserialize<'de>,
-{
+impl IpcServer {
     pub fn bind(context: &Context) -> io::Result<Self> {
         let path = socket_path(context)?;
 
@@ -99,14 +86,10 @@ where
 
         let inner = UnixListener::bind(&path)?;
 
-        Ok(Self {
-            path,
-            inner,
-            phantom: PhantomData,
-        })
+        Ok(Self { path, inner })
     }
 
-    pub fn receive(&mut self) -> Result<T, Error> {
+    pub fn receive(&mut self) -> Result<IpcMessage, Error> {
         let (socket, _) = self.inner.accept()?;
         let mut reader = BufReader::new(socket);
 
@@ -118,26 +101,22 @@ where
     }
 }
 
-impl<T> Drop for IpcServerImpl<T> {
+impl Drop for IpcServer {
     fn drop(&mut self) {
         let _ = remove_file(&self.path);
     }
 }
 
-impl<T> IpcClientImpl<T>
-where
-    T: Serialize,
-{
+impl IpcClient {
     pub fn connect(context: &Context) -> io::Result<Self> {
         let path = socket_path(context)?;
 
         Ok(Self {
             inner: UnixStream::connect(path)?,
-            phantom: PhantomData,
         })
     }
 
-    pub fn send(&mut self, value: &T) -> Result<(), Error> {
+    pub fn send(&mut self, value: &IpcMessage) -> Result<(), Error> {
         let mut writer = BufWriter::new(&mut self.inner);
         let encoded = serialize(value)?;
 
