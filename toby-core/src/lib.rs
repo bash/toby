@@ -6,6 +6,8 @@ extern crate lazy_static;
 #[macro_use]
 extern crate serde_derive;
 
+pub extern crate users;
+
 pub const VERSION: &str = env!("TOBY_VERSION");
 
 mod context;
