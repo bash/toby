@@ -3,11 +3,14 @@ use crate::job::JobTrigger;
 use crate::path;
 use crate::Context;
 use std::error;
+use std::ffi::CString;
 use std::fmt;
 use std::fs::{remove_file, DirBuilder};
 use std::io::{self, BufReader, BufWriter, Read, Write};
+use std::os::unix::ffi::OsStrExt;
 use std::os::unix::net::{UnixListener, UnixStream};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use users::mock::{gid_t, uid_t};
 
 const SOCKET_FILE_NAME: &str = "toby-workerd.sock";
 
@@ -32,6 +35,12 @@ pub struct IpcServer {
 }
 
 #[derive(Debug)]
+pub struct IpcServerBuilder<'a> {
+    context: &'a Context,
+    owner: Option<(uid_t, gid_t)>,
+}
+
+#[derive(Debug)]
 pub struct IpcClient {
     inner: UnixStream,
 }
@@ -44,6 +53,17 @@ fn socket_path(context: &Context) -> io::Result<PathBuf> {
     }
 
     Ok(path!(path, SOCKET_FILE_NAME))
+}
+
+fn chown(path: &Path, uid: uid_t, gid: gid_t) -> io::Result<()> {
+    let s = CString::new(path.as_os_str().as_bytes()).unwrap();
+    let ret = unsafe { libc::chown(s.as_ptr(), uid, gid) };
+
+    if ret == 0 {
+        Ok(())
+    } else {
+        Err(io::Error::last_os_error())
+    }
 }
 
 impl fmt::Display for Error {
@@ -76,9 +96,21 @@ impl From<bincode::Error> for Error {
     }
 }
 
-impl IpcServer {
-    pub fn bind(context: &Context) -> io::Result<Self> {
-        let path = socket_path(context)?;
+impl<'a> IpcServerBuilder<'a> {
+    pub fn new(context: &'a Context) -> Self {
+        Self {
+            context,
+            owner: None,
+        }
+    }
+
+    pub fn owner(mut self, owner: (uid_t, gid_t)) -> Self {
+        self.owner = Some(owner);
+        self
+    }
+
+    pub fn bind(self) -> io::Result<IpcServer> {
+        let path = socket_path(self.context)?;
 
         if path.exists() {
             remove_file(&path)?;
@@ -86,9 +118,15 @@ impl IpcServer {
 
         let inner = UnixListener::bind(&path)?;
 
-        Ok(Self { path, inner })
-    }
+        if let Some((uid, gid)) = self.owner {
+            chown(&path, uid, gid)?;
+        }
 
+        Ok(IpcServer { path, inner })
+    }
+}
+
+impl IpcServer {
     pub fn receive(&mut self) -> Result<IpcMessage, Error> {
         let (socket, _) = self.inner.accept()?;
         let mut reader = BufReader::new(socket);

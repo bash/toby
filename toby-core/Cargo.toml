@@ -13,6 +13,8 @@ serde = "1.0"
 serde_derive = "1.0"
 lazy_static = "1.1.0"
 toml = "0.4"
+users = "0.7"
+libc = "0.2.43"
 
 [dev-dependencies]
 tempdir = "0.3"

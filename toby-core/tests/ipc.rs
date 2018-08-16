@@ -4,7 +4,7 @@ use self::context::TempContext;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::thread;
-use toby_core::ipc::{IpcClient, IpcMessage, IpcServer};
+use toby_core::ipc::{IpcClient, IpcMessage, IpcServerBuilder};
 use toby_core::job::JobTrigger;
 
 #[test]
@@ -18,7 +18,7 @@ fn test_ipc() {
         let context = context.clone();
 
         thread::spawn(move || {
-            let mut server = IpcServer::bind(&context).unwrap();
+            let mut server = IpcServerBuilder::new(&context).bind().unwrap();
 
             ready_tx.send(()).unwrap();
 
