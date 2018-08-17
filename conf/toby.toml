@@ -1,3 +1,8 @@
+# Defines the user for both unix domain socket and http server.
+user = "toby"
+# Defines the group for both unix domain socket and http server.
+group = "toby"
+
 # Changes the address and port the http servers listens on.
 # [listen]
 # address = "0.0.0.0"

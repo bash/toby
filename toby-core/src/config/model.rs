@@ -3,6 +3,8 @@ use std::collections::{HashMap, HashSet};
 use std::net::{IpAddr, Ipv4Addr};
 
 const DEFAULT_PORT: u16 = 8629;
+const DEFAULT_USER: &str = "toby";
+const DEFAULT_GROUP: &str = "toby";
 
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub struct Tokens(pub(super) HashMap<String, Token>);
@@ -36,6 +38,10 @@ pub(super) struct Script {
 #[derive(Serialize, Deserialize, Debug, Clone, Default, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct MainConfig {
+    #[serde(default = "default_group")]
+    pub(super) user: String,
+    #[serde(default = "default_user")]
+    pub(super) group: String,
     #[serde(default)]
     pub(super) listen: ListenConfig,
     pub(super) telegram: Option<TelegramConfig>,
@@ -92,6 +98,16 @@ fn default_address() -> IpAddr {
     IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))
 }
 
+#[inline]
+fn default_user() -> String {
+    String::from(DEFAULT_USER)
+}
+
+#[inline]
+fn default_group() -> String {
+    String::from(DEFAULT_GROUP)
+}
+
 impl Serialize for Tokens {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -111,6 +127,14 @@ impl<'de> Deserialize<'de> for Tokens {
 }
 
 impl Config {
+    pub fn user(&self) -> &str {
+        &self.main.user
+    }
+
+    pub fn group(&self) -> &str {
+        &self.main.group
+    }
+
     pub fn get_token(&self, token: &str) -> Option<&Token> {
         self.tokens.0.get(token)
     }
@@ -266,5 +290,20 @@ mod test {
             Some("key.pem"),
             config.tls().map(|tls| tls.certificate_key())
         );
+    }
+
+    #[test]
+    fn test_user_group() {
+        let config = Config {
+            main: MainConfig {
+                user: String::from("user"),
+                group: String::from("group"),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        assert_eq!("user", config.user());
+        assert_eq!("group", config.group());
     }
 }

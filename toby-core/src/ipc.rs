@@ -1,4 +1,5 @@
 use bincode::{self, deserialize, serialize};
+use crate::identity::Identity;
 use crate::job::JobTrigger;
 use crate::path;
 use crate::Context;
@@ -104,8 +105,8 @@ impl<'a> IpcServerBuilder<'a> {
         }
     }
 
-    pub fn owner(mut self, owner: (uid_t, gid_t)) -> Self {
-        self.owner = Some(owner);
+    pub fn owner(mut self, owner: &Identity) -> Self {
+        self.owner = Some((owner.uid(), owner.gid()));
         self
     }
 

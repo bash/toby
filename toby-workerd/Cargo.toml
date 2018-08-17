@@ -8,3 +8,6 @@ edition = "2018"
 
 [dependencies]
 toby-core = { path = "../toby-core" }
+
+[features]
+enable-user-switch = []

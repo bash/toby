@@ -1,6 +1,9 @@
-sudo: false
+sudo: required
 dist: trusty
 language: rust
+
+services:
+  - docker
 
 matrix:
   include:
@@ -33,6 +36,7 @@ before_script:
 script:
   - cargo clippy --verbose
   - cargo test --verbose
+  - ./tests/run.sh
   - cargo fmt -- --check
 
 before_deploy:
