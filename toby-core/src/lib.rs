@@ -1,4 +1,4 @@
-#![feature(rust_2018_preview, decl_macro, box_syntax)]
+#![feature(decl_macro, box_syntax)]
 #![warn(rust_2018_idioms)]
 
 #[macro_use]
