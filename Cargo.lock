@@ -136,6 +136,9 @@ dependencies = [
 [[package]]
 name = "toby-httpd"
 version = "0.1.0"
+dependencies = [
+ "toby-core 0.1.0",
+]
 
 [[package]]
 name = "toby-workerd"
