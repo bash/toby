@@ -127,7 +127,7 @@ impl<'a> IpcServerBuilder<'a> {
                     .into_future();
             }
 
-            return future::ok(path);
+            future::ok(path)
         });
 
         let bind_future = path_remove_future.and_then(|path| {
