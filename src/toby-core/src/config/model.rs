@@ -45,7 +45,6 @@ pub struct MainConfig {
     #[serde(default)]
     pub(super) listen: ListenConfig,
     pub(super) telegram: Option<TelegramConfig>,
-    pub(super) tls: Option<TlsConfig>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -72,13 +71,6 @@ pub enum SendLog {
     Always,
     Success,
     Failure,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct TlsConfig {
-    pub(super) certificate: String,
-    pub(super) certificate_key: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -145,20 +137,6 @@ impl Config {
 
     pub fn address(&self) -> &IpAddr {
         &self.main.listen.address
-    }
-
-    pub fn tls(&self) -> Option<&TlsConfig> {
-        self.main.tls.as_ref()
-    }
-}
-
-impl TlsConfig {
-    pub fn certificate(&self) -> &str {
-        &self.certificate
-    }
-
-    pub fn certificate_key(&self) -> &str {
-        &self.certificate_key
     }
 }
 
@@ -269,27 +247,6 @@ mod test {
 
         assert_eq!(1234, config.port());
         assert_eq!(&"172.16.16.16".parse::<IpAddr>().unwrap(), config.address());
-    }
-
-    #[test]
-    fn test_tls_config() {
-        let config = Config {
-            main: MainConfig {
-                tls: Some(TlsConfig {
-                    certificate: "cert.pem".into(),
-                    certificate_key: "key.pem".into(),
-                }),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-
-        assert_eq!(Some("cert.pem"), config.tls().map(|tls| tls.certificate()));
-
-        assert_eq!(
-            Some("key.pem"),
-            config.tls().map(|tls| tls.certificate_key())
-        );
     }
 
     #[test]

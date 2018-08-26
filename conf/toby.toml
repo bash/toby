@@ -8,11 +8,6 @@ group = "toby"
 # address = "0.0.0.0"
 # port = 8629
 
-# Although not required it is recommended to enable TLS.
-# [tls]
-# certificate = "/etc/letsencrypt/live/toby.friendly/fullchain.pem"
-# certificate_key = "/etc/letsencrypt/live/toby.friendly/privkey.pem"
-
 # The bot can notify you about success/failure of jobs through telegram.
 # [telegram]
 # token = "TOKEN"
