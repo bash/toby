@@ -1,7 +1,7 @@
 [workspace]
 members = [
-  "toby-cli",
-  "toby-core",
-  "toby-httpd",
-  "toby-workerd",
+  "src/toby",
+  "src/toby-core",
+  "src/toby-httpd",
+  "src/toby-workerd",
 ]

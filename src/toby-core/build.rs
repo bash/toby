@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io;
 
 fn main() {
-    let mut file = match File::open("../Build.txt") {
+    let mut file = match File::open("../../Build.txt") {
         Ok(file) => file,
         Err(_) => {
             panic!(
