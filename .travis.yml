@@ -5,9 +5,9 @@ language: rust
 services:
   - docker
 
-matrix:
-  include:
-    - env: OPENSSL_VERSION=1.1.0g OPENSSL_DIR=$HOME/openssl/1.1.0g
+# matrix:
+#   include:
+#     - env: OPENSSL_VERSION=1.1.0g OPENSSL_DIR=$HOME/openssl/1.1.0g
 
 cache:
   directories:
