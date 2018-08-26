@@ -8,6 +8,8 @@ edition = "2018"
 
 [dependencies]
 toby-core = { path = "../toby-core" }
+tokio = "0.1"
+futures = "0.1"
 
 [features]
 enable-user-switch = []

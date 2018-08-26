@@ -1,16 +1,23 @@
 #![warn(rust_2018_idioms)]
 
+use futures::{future, Future, Stream};
+#[cfg(feature = "enable-user-switch")]
 use toby_core::config::{ConfigLoader, FsConfigSource};
+#[cfg(feature = "enable-user-switch")]
 use toby_core::identity::Identity;
 use toby_core::ipc::IpcServerBuilder;
 use toby_core::Context;
+use tokio;
 
 fn main() {
     let context = Context::default_context();
+
+    #[cfg(feature = "enable-user-switch")]
     let config = ConfigLoader::new(&FsConfigSource::new(context))
         .load()
         .unwrap();
 
+    #[cfg(feature = "enable-user-switch")]
     let identity = Identity::load(config.user(), config.group()).unwrap();
 
     let server_builder = IpcServerBuilder::new(context);
@@ -18,11 +25,19 @@ fn main() {
     #[cfg(feature = "enable-user-switch")]
     let server_builder = server_builder.owner(&identity);
 
-    let mut server = server_builder.bind().unwrap();
+    tokio::run(
+        server_builder
+            .bind()
+            .map_err(|err| println!("Error starting ipc server: {}", err))
+            .and_then(|server| {
+                server
+                    .incoming()
+                    .map_err(|err| println!("Error receiving message: {}", err))
+                    .for_each(|msg| {
+                        println!("Received message: {:?}", msg);
 
-    loop {
-        let msg = server.receive().unwrap();
-
-        println!("Received message: {:?}", msg);
-    }
+                        future::ok(())
+                    })
+            }),
+    );
 }

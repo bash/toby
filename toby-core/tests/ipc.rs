@@ -1,16 +1,18 @@
 mod context;
 
 use self::context::TempContext;
-use std::sync::mpsc::channel;
+use futures::{Future, Stream};
+use std::sync::mpsc::sync_channel;
 use std::sync::Arc;
 use std::thread;
 use toby_core::ipc::{IpcClient, IpcMessage, IpcServerBuilder};
 use toby_core::job::JobTrigger;
+use tokio;
 
 #[test]
 fn test_ipc() {
-    let (tx, rx) = channel();
-    let (ready_tx, ready_rx) = channel();
+    let (tx, rx) = sync_channel(128);
+    let (ready_tx, ready_rx) = sync_channel(128);
 
     let context = Arc::new(TempContext::create().unwrap());
 
@@ -18,13 +20,23 @@ fn test_ipc() {
         let context = context.clone();
 
         thread::spawn(move || {
-            let mut server = IpcServerBuilder::new(&context).bind().unwrap();
+            tokio::run(
+                IpcServerBuilder::new(&context)
+                    .bind()
+                    .map_err(|err| panic!("Error: {}", err))
+                    .inspect(move |_| {
+                        ready_tx.send(()).unwrap();
+                    }).and_then(|server| {
+                        server
+                            .incoming()
+                            .map_err(|err| panic!("Error: {}", err))
+                            .for_each(move |message| {
+                                tx.send(message).unwrap();
 
-            ready_tx.send(()).unwrap();
-
-            let message = server.receive().unwrap();
-
-            tx.send(message).unwrap();
+                                Ok(())
+                            })
+                    }),
+            );
         });
     }
 
@@ -34,13 +46,20 @@ fn test_ipc() {
         thread::spawn(move || {
             ready_rx.recv().unwrap();
 
-            let mut client = IpcClient::connect(&context).unwrap();
+            tokio::run(
+                IpcClient::connect(&context)
+                    .map_err(|err| panic!("Error: {}", err))
+                    .and_then(|client| {
+                        let send_future = client.send(&IpcMessage::Job {
+                            trigger: JobTrigger::Cli,
+                            project: "foo".into(),
+                        });
 
-            client
-                .send(&IpcMessage::Job {
-                    trigger: JobTrigger::Cli,
-                    project: "foo".into(),
-                }).unwrap();
+                        send_future
+                            .map_err(|err| panic!("Error: {}", err))
+                            .map(|_| ())
+                    }),
+            );
         });
     }
 
