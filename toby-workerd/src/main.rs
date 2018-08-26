@@ -1,6 +1,7 @@
 #![warn(rust_2018_idioms)]
 
 use futures::{future, Future, Stream};
+use toby_core::cancelation::{cancelation_token, CancelableStreamExt};
 #[cfg(feature = "enable-user-switch")]
 use toby_core::config::{ConfigLoader, FsConfigSource};
 #[cfg(feature = "enable-user-switch")]
@@ -25,6 +26,8 @@ fn main() {
     #[cfg(feature = "enable-user-switch")]
     let server_builder = server_builder.owner(&identity);
 
+    let (cancelation_token, _) = cancelation_token();
+
     tokio::run(
         server_builder
             .bind()
@@ -32,6 +35,7 @@ fn main() {
             .and_then(|server| {
                 server
                     .incoming()
+                    .cancelable(cancelation_token)
                     .map_err(|err| println!("Error receiving message: {}", err))
                     .for_each(|msg| {
                         println!("Received message: {:?}", msg);

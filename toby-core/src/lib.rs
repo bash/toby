@@ -10,6 +10,7 @@ pub const VERSION: &str = env!("TOBY_VERSION");
 
 mod context;
 
+pub mod cancelation;
 pub mod config;
 pub mod identity;
 pub mod ipc;
