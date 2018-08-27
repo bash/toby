@@ -8,8 +8,18 @@ pipeline {
       }
     }
     stage('Test') {
-      steps {
-        sh 'cargo test'
+      parallel {
+        stage('cargo') {
+          steps {
+            sh 'cargo test'
+          }
+        }
+
+        stage('docker') {
+          steps {
+            sh './tests/run.sh'
+          }
+        }
       }
     }
     stage('Style checks') {
