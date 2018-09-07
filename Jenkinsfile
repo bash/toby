@@ -4,7 +4,7 @@ pipeline {
     stage('Build') {
       steps {
         sh './configure'
-        sh 'cargo build'
+        sh 'cargo build --all-features'
       }
     }
     stage('Test') {
