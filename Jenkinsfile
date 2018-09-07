@@ -15,11 +15,11 @@ pipeline {
           }
         }
 
-        stage('docker') {
-          steps {
-            sh './tests/run.sh'
-          }
-        }
+        // stage('docker') {
+        //   steps {
+        //     sh './tests/run.sh'
+        //   }
+        // }
       }
     }
     stage('Style checks') {
