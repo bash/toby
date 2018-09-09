@@ -25,7 +25,7 @@ fn main_inner() -> Result<(), Box<dyn std::error::Error>> {
     let context = Context::default_context();
     let config_loader = ConfigLoader::new(&context);
     let config = config_loader.load()?;
-    let _registry = load_plugins(config.plugins(), &config_loader)?;
+    let _plugins = load_plugins(config.plugins(), &config_loader)?;
 
     #[cfg(feature = "enable-user-switch")]
     let identity = Identity::load(config.user(), config.group()).unwrap();

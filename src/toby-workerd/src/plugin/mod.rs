@@ -5,29 +5,7 @@ use toby_plugin::config::ConfigLoader as PluginConfigLoader;
 use toby_plugin::job::Hook as JobHook;
 use toby_plugin::{Context as PluginContext, RegistrarError, Registry};
 
-type RegistrarFn = fn(&mut PluginContext<'_>) -> Result<(), RegistrarError>;
-
 const PLUGIN_REGISTRAR_SYMBOL: &[u8] = b"plugin_registrar";
-
-#[derive(Default)]
-pub(crate) struct RegistryImpl {
-    pub(crate) job_hooks: Vec<Box<dyn JobHook>>,
-}
-
-impl Registry for RegistryImpl {
-    fn register_job_hook(&mut self, hook: Box<dyn JobHook>) {
-        self.job_hooks.push(hook);
-    }
-}
-
-fn library_path(name: &str) -> String {
-    format!(
-        "{}toby_{}{}",
-        std::env::consts::DLL_PREFIX,
-        name,
-        std::env::consts::DLL_SUFFIX
-    )
-}
 
 #[derive(Debug)]
 pub(crate) enum Error {
@@ -58,10 +36,44 @@ impl From<RegistrarError> for Error {
     }
 }
 
+pub(crate) struct LoadedPlugins {
+    pub(crate) job_hooks: Vec<Box<dyn JobHook>>,
+}
+
+impl From<RegistryImpl> for LoadedPlugins {
+    fn from(registry: RegistryImpl) -> LoadedPlugins {
+        let RegistryImpl { job_hooks } = registry;
+
+        LoadedPlugins { job_hooks }
+    }
+}
+
+#[derive(Default)]
+struct RegistryImpl {
+    job_hooks: Vec<Box<dyn JobHook>>,
+}
+
+impl Registry for RegistryImpl {
+    fn register_job_hook(&mut self, hook: Box<dyn JobHook>) {
+        self.job_hooks.push(hook);
+    }
+}
+
+fn library_path(name: &str) -> String {
+    format!(
+        "{}toby_{}{}",
+        std::env::consts::DLL_PREFIX,
+        name,
+        std::env::consts::DLL_SUFFIX
+    )
+}
+
+type RegistrarFn = fn(&mut PluginContext<'_>) -> Result<(), RegistrarError>;
+
 pub(crate) fn load_plugins(
     plugins: &[String],
     config_loader: &'_ ConfigLoader<'_>,
-) -> Result<RegistryImpl, Error> {
+) -> Result<LoadedPlugins, Error> {
     let mut registry = RegistryImpl::default();
 
     let mut context = PluginContext {
@@ -78,5 +90,5 @@ pub(crate) fn load_plugins(
         registrar_fn(&mut context)?;
     }
 
-    Ok(registry)
+    Ok(LoadedPlugins::from(registry))
 }
