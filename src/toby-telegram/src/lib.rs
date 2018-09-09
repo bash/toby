@@ -1,7 +1,6 @@
 use std::error::Error;
 use toby_plugin::{Job, JobHook, JobOutcome, Registry};
 
-#[derive(Debug)]
 struct Telegram;
 
 impl JobHook for Telegram {
