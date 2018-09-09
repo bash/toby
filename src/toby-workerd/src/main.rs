@@ -11,6 +11,7 @@ use toby_core::ipc::IpcServerBuilder;
 use toby_core::Context;
 use tokio;
 
+mod path;
 mod plugin;
 
 fn main() {
