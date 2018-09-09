@@ -2,7 +2,7 @@
 
 use futures::Future;
 #[cfg(feature = "enable-user-switch")]
-use toby_core::config::{ConfigLoader, FsConfigSource};
+use toby_core::config::ConfigLoader;
 #[cfg(feature = "enable-user-switch")]
 use toby_core::identity::{set_current, Identity};
 use toby_core::ipc::IpcClient;
@@ -13,9 +13,7 @@ fn main() {
     let context = Context::default_context();
 
     #[cfg(feature = "enable-user-switch")]
-    let config = ConfigLoader::new(&FsConfigSource::new(context))
-        .load()
-        .unwrap();
+    let config = ConfigLoader::new(&context).load().unwrap();
 
     #[cfg(feature = "enable-user-switch")]
     {

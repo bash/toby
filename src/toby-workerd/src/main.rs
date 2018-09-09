@@ -3,7 +3,7 @@
 use futures::{future, Future, Stream};
 use toby_core::cancelation::{cancelation_token, CancelableStreamExt};
 #[cfg(feature = "enable-user-switch")]
-use toby_core::config::{ConfigLoader, FsConfigSource};
+use toby_core::config::ConfigLoader;
 #[cfg(feature = "enable-user-switch")]
 use toby_core::identity::Identity;
 use toby_core::ipc::IpcServerBuilder;
@@ -19,9 +19,7 @@ fn main() {
     println!("Registered hooks: {}", registry.job_hooks.len());
 
     #[cfg(feature = "enable-user-switch")]
-    let config = ConfigLoader::new(&FsConfigSource::new(context))
-        .load()
-        .unwrap();
+    let config = ConfigLoader::new(&context).load().unwrap();
 
     #[cfg(feature = "enable-user-switch")]
     let identity = Identity::load(config.user(), config.group()).unwrap();
