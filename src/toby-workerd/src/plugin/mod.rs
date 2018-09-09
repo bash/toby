@@ -22,7 +22,7 @@ impl Registry for RegistryImpl {
 
 fn library_path(name: &str) -> String {
     format!(
-        "{}{}{}",
+        "{}toby_{}{}",
         std::env::consts::DLL_PREFIX,
         name,
         std::env::consts::DLL_SUFFIX
@@ -59,7 +59,7 @@ impl From<RegistrarError> for Error {
 }
 
 pub(crate) fn load_plugins(
-    plugins: &[&str],
+    plugins: &[String],
     config_loader: &'_ ConfigLoader<'_>,
 ) -> Result<RegistryImpl, Error> {
     let mut registry = RegistryImpl::default();

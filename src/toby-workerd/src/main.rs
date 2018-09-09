@@ -23,13 +23,8 @@ fn main() {
 fn main_inner() -> Result<(), Box<dyn std::error::Error>> {
     let context = Context::default_context();
     let config_loader = ConfigLoader::new(&context);
-
-    let registry = load_plugins(&["toby_telegram"], &config_loader)?;
-
-    println!("Registered hooks: {}", registry.job_hooks.len());
-
-    #[cfg(feature = "enable-user-switch")]
-    let config = config_loader.load().unwrap();
+    let config = config_loader.load()?;
+    let _registry = load_plugins(config.plugins(), &config_loader)?;
 
     #[cfg(feature = "enable-user-switch")]
     let identity = Identity::load(config.user(), config.group()).unwrap();

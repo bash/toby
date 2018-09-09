@@ -3,11 +3,10 @@ user = "toby"
 # Defines the group for both unix domain socket and http server.
 group = "toby"
 
+# Load plugins (e.g. "telegram")
+# plugins = ["telegram"]
+
 # Changes the address and port the http servers listens on.
 # [listen]
 # address = "0.0.0.0"
 # port = 8629
-
-# The bot can notify you about success/failure of jobs through telegram.
-# [telegram]
-# token = "TOKEN"

@@ -44,6 +44,8 @@ pub struct MainConfig {
     pub(super) group: String,
     #[serde(default)]
     pub(super) listen: ListenConfig,
+    #[serde(default)]
+    pub(super) plugins: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -119,6 +121,10 @@ impl Config {
 
     pub fn address(&self) -> &IpAddr {
         &self.main.listen.address
+    }
+
+    pub fn plugins(&self) -> &[String] {
+        &self.main.plugins
     }
 }
 
