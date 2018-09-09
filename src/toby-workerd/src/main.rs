@@ -1,22 +1,30 @@
 #![warn(rust_2018_idioms)]
 
+use self::plugin::load_plugins;
 use futures::{future, Future, Stream};
+use std::process;
 use toby_core::cancelation::{cancelation_token, CancelableStreamExt};
-#[cfg(feature = "enable-user-switch")]
-use toby_core::config::{ConfigLoader, FsConfigSource};
+use toby_core::config::ConfigLoader;
 #[cfg(feature = "enable-user-switch")]
 use toby_core::identity::Identity;
 use toby_core::ipc::IpcServerBuilder;
 use toby_core::Context;
 use tokio;
 
-fn main() {
-    let context = Context::default_context();
+mod plugin;
 
-    #[cfg(feature = "enable-user-switch")]
-    let config = ConfigLoader::new(&FsConfigSource::new(context))
-        .load()
-        .unwrap();
+fn main() {
+    if let Err(err) = main_inner() {
+        eprintln!("{}", err);
+        process::exit(1);
+    }
+}
+
+fn main_inner() -> Result<(), Box<dyn std::error::Error>> {
+    let context = Context::default_context();
+    let config_loader = ConfigLoader::new(&context);
+    let config = config_loader.load()?;
+    let _registry = load_plugins(config.plugins(), &config_loader)?;
 
     #[cfg(feature = "enable-user-switch")]
     let identity = Identity::load(config.user(), config.group()).unwrap();
@@ -44,4 +52,6 @@ fn main() {
                     })
             }),
     );
+
+    Ok(())
 }

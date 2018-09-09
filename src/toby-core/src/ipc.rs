@@ -1,6 +1,6 @@
 use bincode::{self, deserialize, serialize};
 use crate::identity::Identity;
-use crate::job::JobTrigger;
+use crate::job::Job;
 use crate::path;
 use crate::Context;
 use futures::{future, Future, IntoFuture, Stream};
@@ -25,10 +25,7 @@ pub enum Error {
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub enum IpcMessage {
-    Job {
-        project: String,
-        trigger: JobTrigger,
-    },
+    Job(Job),
 }
 
 #[derive(Debug)]

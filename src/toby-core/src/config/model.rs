@@ -44,7 +44,8 @@ pub struct MainConfig {
     pub(super) group: String,
     #[serde(default)]
     pub(super) listen: ListenConfig,
-    pub(super) telegram: Option<TelegramConfig>,
+    #[serde(default)]
+    pub(super) plugins: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -54,23 +55,6 @@ pub(super) struct ListenConfig {
     pub(super) port: u16,
     #[serde(default = "default_address")]
     pub(super) address: IpAddr,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub(super) struct TelegramConfig {
-    pub(super) token: String,
-    #[serde(default)]
-    pub(super) send_log: SendLog,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, Eq, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub enum SendLog {
-    Never,
-    Always,
-    Success,
-    Failure,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -138,6 +122,10 @@ impl Config {
     pub fn address(&self) -> &IpAddr {
         &self.main.listen.address
     }
+
+    pub fn plugins(&self) -> &[String] {
+        &self.main.plugins
+    }
 }
 
 impl Token {
@@ -159,39 +147,10 @@ impl Default for ListenConfig {
     }
 }
 
-impl Default for SendLog {
-    fn default() -> Self {
-        SendLog::Never
-    }
-}
-
-impl SendLog {
-    pub fn should_send(self, successful: bool) -> bool {
-        match self {
-            SendLog::Always => true,
-            SendLog::Success if successful => true,
-            SendLog::Failure if !successful => true,
-            _ => false,
-        }
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
     use std::net::IpAddr;
-
-    #[test]
-    fn test_should_send_log() {
-        assert_eq!(true, SendLog::Always.should_send(true));
-        assert_eq!(true, SendLog::Always.should_send(false));
-        assert_eq!(true, SendLog::Success.should_send(true));
-        assert_eq!(false, SendLog::Success.should_send(false));
-        assert_eq!(false, SendLog::Failure.should_send(true));
-        assert_eq!(true, SendLog::Failure.should_send(false));
-        assert_eq!(false, SendLog::Never.should_send(true));
-        assert_eq!(false, SendLog::Never.should_send(false));
-    }
 
     #[test]
     fn test_can_access() {

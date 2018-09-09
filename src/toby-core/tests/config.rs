@@ -4,7 +4,7 @@ use self::context::TempContext;
 use std::fs::{create_dir, OpenOptions};
 use std::io::Write;
 use std::net::{IpAddr, Ipv4Addr};
-use toby_core::config::{ConfigLoader, FsConfigSource};
+use toby_core::config::ConfigLoader;
 use toby_core::path;
 
 mod context;
@@ -48,9 +48,7 @@ command = ["systemctl", "restart", "dreams"]
 allow_failure = true"#
     );
 
-    let config = ConfigLoader::new(&FsConfigSource::new(&context))
-        .load()
-        .unwrap();
+    let config = ConfigLoader::new(&context).load().unwrap();
 
     assert_eq!(
         &IpAddr::V4(Ipv4Addr::new(172, 16, 16, 16)),

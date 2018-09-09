@@ -3,5 +3,7 @@ members = [
   "src/toby",
   "src/toby-core",
   "src/toby-httpd",
+  "src/toby-plugin",
+  "src/toby-telegram",
   "src/toby-workerd",
 ]

@@ -1,17 +1,15 @@
 cargo-features = ["edition"]
 
 [package]
-name = "toby-workerd"
+name = "toby-telegram"
 version = "0.1.0"
 authors = ["Ruben Schmidmeister <ruben.schmidmeister@icloud.com>"]
 edition = "2018"
 
-[dependencies]
-toby-core = { path = "../toby-core" }
-toby-plugin = { path = "../toby-plugin" }
-tokio = "0.1"
-futures = "0.1"
-libloading = "0.5"
+[lib]
+crate-type = ["cdylib"]
 
-[features]
-enable-user-switch = []
+[dependencies]
+toby-plugin = { path = "../toby-plugin" }
+serde = "1.0"
+serde_derive = "1.0"

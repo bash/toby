@@ -6,7 +6,7 @@ use std::sync::mpsc::sync_channel;
 use std::sync::Arc;
 use std::thread;
 use toby_core::ipc::{IpcClient, IpcMessage, IpcServerBuilder};
-use toby_core::job::JobTrigger;
+use toby_core::job::{Job, Trigger};
 use tokio;
 
 #[test]
@@ -50,10 +50,10 @@ fn test_ipc() {
                 IpcClient::connect(&context)
                     .map_err(|err| panic!("Error: {}", err))
                     .and_then(|client| {
-                        let send_future = client.send(&IpcMessage::Job {
-                            trigger: JobTrigger::Cli,
+                        let send_future = client.send(&IpcMessage::Job(Job {
+                            trigger: Trigger::Cli,
                             project: "foo".into(),
-                        });
+                        }));
 
                         send_future
                             .map_err(|err| panic!("Error: {}", err))
@@ -66,10 +66,10 @@ fn test_ipc() {
     let message = rx.recv().unwrap();
 
     assert_eq!(
-        IpcMessage::Job {
-            trigger: JobTrigger::Cli,
+        IpcMessage::Job(Job {
+            trigger: Trigger::Cli,
             project: "foo".into(),
-        },
+        }),
         message
     );
 }
