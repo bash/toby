@@ -1,8 +1,9 @@
 #![warn(rust_2018_idioms)]
 
+use self::plugin::load_plugins;
 use futures::{future, Future, Stream};
+use std::process;
 use toby_core::cancelation::{cancelation_token, CancelableStreamExt};
-#[cfg(feature = "enable-user-switch")]
 use toby_core::config::ConfigLoader;
 #[cfg(feature = "enable-user-switch")]
 use toby_core::identity::Identity;
@@ -13,13 +14,22 @@ use tokio;
 mod plugin;
 
 fn main() {
+    if let Err(err) = main_inner() {
+        eprintln!("{}", err);
+        process::exit(1);
+    }
+}
+
+fn main_inner() -> Result<(), Box<dyn std::error::Error>> {
     let context = Context::default_context();
-    let registry = plugin::load_plugins(&["toby_telegram"]);
+    let config_loader = ConfigLoader::new(&context);
+
+    let registry = load_plugins(&["toby_telegram"], &config_loader)?;
 
     println!("Registered hooks: {}", registry.job_hooks.len());
 
     #[cfg(feature = "enable-user-switch")]
-    let config = ConfigLoader::new(&context).load().unwrap();
+    let config = config_loader.load().unwrap();
 
     #[cfg(feature = "enable-user-switch")]
     let identity = Identity::load(config.user(), config.group()).unwrap();
@@ -47,4 +57,6 @@ fn main() {
                     })
             }),
     );
+
+    Ok(())
 }

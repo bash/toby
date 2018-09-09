@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 toby-core = { path = "../toby-core" }
+serde = "1.0"

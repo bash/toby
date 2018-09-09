@@ -110,3 +110,5 @@ impl fmt::Display for ConfigError {
         }
     }
 }
+
+impl error::Error for ConfigError {}
