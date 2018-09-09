@@ -15,7 +15,7 @@ fn library_path(name: &str) -> String {
 }
 
 pub(crate) fn load_plugins(plugins: &[&str]) -> Registry {
-    let mut registry = Registry::new();
+    let mut registry = Registry::default();
 
     for plugin in plugins {
         let lib = lib::Library::new(library_path(plugin)).unwrap();

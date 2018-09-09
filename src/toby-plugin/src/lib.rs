@@ -16,18 +16,12 @@ pub trait JobHook: std::fmt::Debug {
     fn after_job(&self, job: Job<'_>, outcome: JobOutcome) -> Result<(), Box<dyn Error>>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Registry {
     job_hooks: Vec<Box<dyn JobHook>>,
 }
 
 impl Registry {
-    pub fn new() -> Self {
-        Self {
-            job_hooks: Vec::new(),
-        }
-    }
-
     pub fn register_job_hook(&mut self, hook: Box<dyn JobHook>) {
         self.job_hooks.push(hook);
     }
