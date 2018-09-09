@@ -10,8 +10,14 @@ use toby_core::ipc::IpcServerBuilder;
 use toby_core::Context;
 use tokio;
 
+mod plugin;
+
 fn main() {
     let context = Context::default_context();
+    let registry = plugin::load_plugins(&["toby_telegram"]);
+    let (job_hooks,) = registry.consume();
+
+    println!("Registered hooks: {}", job_hooks.len());
 
     #[cfg(feature = "enable-user-switch")]
     let config = ConfigLoader::new(&FsConfigSource::new(context))
