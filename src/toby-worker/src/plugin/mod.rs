@@ -8,7 +8,7 @@ use toby_plugin::{Context as PluginContext, RegistrarError, Registry};
 const PLUGIN_REGISTRAR_SYMBOL: &[u8] = b"plugin_registrar";
 
 #[derive(Debug)]
-pub(crate) enum Error {
+pub enum Error {
     Io(io::Error),
     Registrar(RegistrarError),
 }
@@ -36,8 +36,8 @@ impl From<RegistrarError> for Error {
     }
 }
 
-pub(crate) struct LoadedPlugins {
-    pub(crate) job_hooks: Vec<Box<dyn JobHook>>,
+pub struct LoadedPlugins {
+    pub job_hooks: Vec<Box<dyn JobHook>>,
 }
 
 impl From<RegistryImpl> for LoadedPlugins {
@@ -70,7 +70,7 @@ fn library_path(name: &str) -> String {
 
 type RegistrarFn = fn(&mut PluginContext<'_>) -> Result<(), RegistrarError>;
 
-pub(crate) fn load_plugins(
+pub fn load_plugins(
     plugins: &[String],
     config_loader: &'_ ConfigLoader<'_>,
 ) -> Result<LoadedPlugins, Error> {

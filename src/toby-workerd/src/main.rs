@@ -1,6 +1,5 @@
 #![warn(rust_2018_idioms)]
 
-use self::plugin::load_plugins;
 use futures::{future, Future, Stream};
 use std::process;
 use toby_core::cancelation::{cancelation_token, CancelableStreamExt};
@@ -9,10 +8,10 @@ use toby_core::config::ConfigLoader;
 use toby_core::identity::Identity;
 use toby_core::ipc::IpcServerBuilder;
 use toby_core::Context;
+use toby_worker::plugin::load_plugins;
 use tokio;
 
 mod path;
-mod plugin;
 
 fn main() {
     if let Err(err) = main_inner() {
