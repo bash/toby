@@ -40,6 +40,13 @@ impl<'a> ConfigLoader<'a> {
         })
     }
 
+    pub fn load_custom<T>(&self, name: &str) -> Result<T, ConfigError>
+    where
+        for<'de> T: serde::Deserialize<'de>,
+    {
+        read_config_file(path!(self.context.config_path(), &format!("{}.toml", name)))
+    }
+
     fn load_main_config(&self) -> Result<MainConfig, ConfigError> {
         read_config_file(path!(self.context.config_path(), CONFIG_FILE_NAME))
     }
