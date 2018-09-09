@@ -6,6 +6,7 @@ use toby_plugin::{Context, RegistrarError};
 extern crate serde_derive;
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 struct TelegramConfig {
     token: String,
     chat_id: i64,
