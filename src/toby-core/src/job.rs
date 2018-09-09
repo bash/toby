@@ -1,67 +1,37 @@
 use std::fmt;
 
-pub type JobId = u64;
-
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub struct Job {
-    pub id: JobId,
     pub project: String,
-    pub trigger: JobTrigger,
+    pub trigger: Trigger,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ArchivedJob {
-    pub started_at: u64,
-    pub successful: bool,
-    pub trigger: ArchivedJobTrigger,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub enum JobTrigger {
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
+pub enum Trigger {
     Webhook { token: String },
     Cli,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum ArchivedJobTrigger {
-    Webhook { token: String },
-    Cli,
+#[derive(Debug, Eq, PartialEq)]
+pub enum Outcome {
+    Failure,
+    Success,
 }
 
-impl JobTrigger {
+impl Trigger {
     pub fn name(&self) -> &str {
-        match *self {
-            JobTrigger::Webhook { .. } => "webhook",
-            JobTrigger::Cli => "cli",
+        match self {
+            Trigger::Webhook { .. } => "webhook",
+            Trigger::Cli => "cli",
         }
     }
 }
 
-impl From<JobTrigger> for ArchivedJobTrigger {
-    fn from(trigger: JobTrigger) -> Self {
-        match trigger {
-            JobTrigger::Cli => ArchivedJobTrigger::Cli,
-            JobTrigger::Webhook { token } => ArchivedJobTrigger::Webhook { token },
-        }
-    }
-}
-
-impl fmt::Display for JobTrigger {
+impl fmt::Display for Trigger {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
-            JobTrigger::Webhook { ref token } => write!(f, "webhook ({})", token),
-            JobTrigger::Cli => write!(f, "cli"),
-        }
-    }
-}
-
-impl Job {
-    pub fn archive(&self, started_at: u64, successful: bool) -> ArchivedJob {
-        ArchivedJob {
-            trigger: self.trigger.clone().into(),
-            started_at,
-            successful,
+        match self {
+            Trigger::Webhook { ref token } => write!(f, "webhook ({})", token),
+            Trigger::Cli => write!(f, "cli"),
         }
     }
 }
