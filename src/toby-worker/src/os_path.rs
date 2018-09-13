@@ -11,22 +11,23 @@ pub trait OsPath {
     fn path(&self) -> OsString;
 }
 
-pub struct OsPathImpl<'a> {
+pub struct ExtendingPath<'a> {
     context: &'a Context,
 }
 
-impl<'a> OsPathImpl<'a> {
-    fn scripts_path(&self) -> PathBuf {
-        path!(self.context.config_path(), SCRIPTS_DIR)
+impl<'a> OsPath for ExtendingPath<'a> {
+    fn path(&self) -> OsString {
+        let path = env::var_os("PATH");
+        let scripts_path = path!(self.context.config_path(), SCRIPTS_DIR);
+
+        extend_script_path(path.as_ref(), scripts_path)
     }
 }
 
-impl<'a> OsPath for OsPathImpl<'a> {
-    fn path(&self) -> OsString {
-        let path = env::var_os("PATH");
-
-        path.map(|path| extend_path(&path, self.scripts_path()).unwrap())
-            .unwrap_or_else(|| self.scripts_path().into())
+fn extend_script_path(path: Option<&OsString>, scripts_path: PathBuf) -> OsString {
+    match path {
+        Some(path) => extend_path(&path, scripts_path).unwrap(),
+        None => scripts_path.into(),
     }
 }
 
