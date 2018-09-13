@@ -26,7 +26,7 @@ impl<'a> OsPath for ExtendingPath<'a> {
 
 fn extend_script_path(path: Option<&OsString>, scripts_path: PathBuf) -> OsString {
     match path {
-        Some(path) => extend_path(&path, scripts_path).unwrap(),
+        Some(path) => extend_path(&path, scripts_path).expect("Failed to extend path"),
         None => scripts_path.into(),
     }
 }
