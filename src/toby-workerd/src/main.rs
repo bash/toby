@@ -11,8 +11,6 @@ use toby_core::Context;
 use toby_worker::plugin::load_plugins;
 use tokio;
 
-mod path;
-
 fn main() {
     if let Err(err) = main_inner() {
         eprintln!("{}", err);

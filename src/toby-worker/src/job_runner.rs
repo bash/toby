@@ -9,11 +9,12 @@ pub type CommandExecutorFactory = dyn Fn() -> Box<dyn CommandExecutor>;
 #[allow(dead_code)]
 pub struct JobRunner {
     command_executor_factory: Box<CommandExecutorFactory>,
-    environment_builder: Box<dyn OsPath>,
+    os_path: Box<dyn OsPath>,
     hooks: Vec<Box<dyn Hook>>,
 }
 
 impl JobRunner {
+    #[allow(clippy::needless_pass_by_value)]
     pub fn run_job(&self, _job: Job, _project: &Project) {
         unimplemented!();
     }
