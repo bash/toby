@@ -1,9 +1,5 @@
-> **⚠️ This project is no longer maintained.**
----
-
 # toby
 
-[![Build Status](https://travis-ci.org/bash/toby.svg?branch=master)](https://travis-ci.org/bash/toby)
 ![Bot: Friendly](https://img.shields.io/badge/bot-friendly-ff69b4.svg)
 
 🤖 Toby the friendly server bot.
